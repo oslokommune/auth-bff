@@ -1,9 +1,8 @@
 import express from "express";
 import {stringReplace} from "string-replace-middleware";
 import path from "path";
-import {config} from "../config.mjs";
 
-export function staticRoutes() {
+export function staticRoutes(config) {
   const router = new express.Router()
 
   router.use(stringReplace({
@@ -11,11 +10,12 @@ export function staticRoutes() {
   }, {
     contentTypeFilterRegexp: /^text\/html/
   }))
-  const staticPath = path.resolve(import.meta.dirname, config.staticRootPath)
+  const staticPath = path.resolve(process.cwd(), config.staticRootPath)
+  console.log(`Serving static content from '${staticPath}'`)
   router.use(express.static(staticPath, {index: false}))
   router.get('*', function (req, res) {
     res.set('Cache-Control', 'no-store')
-    res.sendFile(path.resolve(import.meta.dirname, config.staticRootPath, 'index.html'))
+    res.sendFile(path.resolve(staticPath, 'index.html'))
   })
 
   return router

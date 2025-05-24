@@ -1,13 +1,12 @@
 import express from "express";
-import {callback, login, logout, user} from "./oidc.mjs";
 
-export function oidcRoutes() {
+export function oidcRoutes(oidcMiddleware) {
   const router = new express.Router()
 
-  router.get('/auth/login', login)
-  router.get('/auth/callback', callback)
-  router.get('/auth/logout', logout)
-  router.get('/auth/user', user)
+  router.get('/auth/login', oidcMiddleware.login)
+  router.get('/auth/callback', oidcMiddleware.callback)
+  router.get('/auth/logout', oidcMiddleware.logout)
+  router.get('/auth/user', oidcMiddleware.user)
 
   return router
 }

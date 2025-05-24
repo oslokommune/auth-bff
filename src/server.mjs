@@ -1,24 +1,31 @@
 #!/usr/bin/env node
 import express from "express"
 import compression from "compression"
-import {config} from './config.mjs'
+import {loadConfig} from './config.mjs'
 import {proxyRoutes} from "./middleware/proxy-routes.mjs";
 import {staticRoutes} from "./middleware/static-routes.mjs";
 import {securityHeaders} from "./middleware/security-headers.mjs";
 import {sessions} from "./middleware/sessions.mjs";
 import {oidcRoutes} from "./middleware/oidc-routes.mjs";
+import {OidcMiddleware} from "./middleware/oidc.mjs";
 
+const config = await loadConfig()
+const port = process.env.port || config.port || 8080;
+const oidcMiddleware = await OidcMiddleware.create(config)
 const app = express()
 
 app.set('trust proxy', true) // TODO: sjekk om denne kan/bør være strengere: https://expressjs.com/en/api.html#trust.proxy.options.table
 app.disable("x-powered-by")
 
-app.use(compression())
-app.use(sessions())
+app.use((req, res, next) => {
+  //request logging
+  next()
+  console.log(`${req.method} ${req.originalUrl}`)
+})
 
-if (!config.devMode) {
-  app.use(securityHeaders())
-}
+app.use(compression())
+app.use(sessions(config))
+app.use(securityHeaders(config))
 
 app.get("/health", (req, res) => {
   res.send("OK")
@@ -26,11 +33,17 @@ app.get("/health", (req, res) => {
 
 const basePath = config.basePath || "/"
 
-app.use(basePath, oidcRoutes())
-app.use(basePath, proxyRoutes())
-app.use(basePath, staticRoutes())
+app.use(basePath, oidcRoutes(oidcMiddleware))
+app.use(basePath, proxyRoutes(config, oidcMiddleware))
+app.use(basePath, staticRoutes(config))
 
-app.listen(config.port, () => {
-  console.log(`Server started on port ${config.port}`)
+const server = app.listen(port, () => {
+  console.log(`Server started on port ${port}`)
 })
 
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Closing...')
+  server.close(() => {
+    console.log('Server closed')
+  })
+})

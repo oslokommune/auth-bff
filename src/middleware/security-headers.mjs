@@ -1,6 +1,19 @@
 import crypto from "crypto";
+import helmet from "helmet";
 
-export function securityHeaders() {
+export function securityHeaders(config) {
+  
+  const contentSecurityPolicy = config.contentSecurityPolicy
+  if(contentSecurityPolicy?.directives) {
+    for (const [_, values] of Object.entries(contentSecurityPolicy.directives)) {
+      for (const [i, value] of values.entries()) {
+        if(value === '{nonce}') {
+          values[i] = (req, res) => `'nonce-${res.locals.cspNonce}'`
+        }
+      }
+    }
+  }
+
   const generateCspNonceMiddleware = (req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(16).toString("hex");
     next();
@@ -12,21 +25,7 @@ export function securityHeaders() {
       includeSubDomains: false,
       preload: false,
     },
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        "default-src": [
-          "'self'",
-          "https://*.oslo.kommune.no",
-          "https://*.oslo.systems",
-        ],
-        "script-src": ["'self'", (req, res) => `'nonce-${res.locals.cspNonce}'`],
-        "style-src": ["'self'"],
-        "frame-ancestors": ["'none'"],
-        "img-src": ["'self'"],
-        "font-src": ["'self'"],
-      },
-    },
+    contentSecurityPolicy: contentSecurityPolicy ?? false,
   })
 
   return [
