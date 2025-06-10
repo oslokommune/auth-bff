@@ -12,16 +12,16 @@ import {OidcMiddleware} from "./middleware/oidc.mjs";
 const config = await loadConfig()
 const port = process.env.port || config.port || 8080;
 const oidcMiddleware = await OidcMiddleware.create(config)
+
+const requestLogger = (req, _, next) => {
+  next()
+  console.log(`${req.method} ${req.originalUrl}`)
+}
+
 const app = express()
 
 app.set('trust proxy', true) // TODO: sjekk om denne kan/bør være strengere: https://expressjs.com/en/api.html#trust.proxy.options.table
 app.disable("x-powered-by")
-
-app.use((req, res, next) => {
-  //request logging
-  next()
-  console.log(`${req.method} ${req.originalUrl}`)
-})
 
 app.use(compression())
 app.use(sessions(config))
@@ -34,6 +34,7 @@ app.get("/health", (req, res) => {
 const basePath = config.basePath || "/"
 
 app.use(basePath, oidcRoutes(oidcMiddleware))
+app.use(requestLogger) //NB, må stå her for å ikke logge auth-requestene over
 app.use(basePath, proxyRoutes(config, oidcMiddleware))
 app.use(basePath, staticRoutes(config))
 
