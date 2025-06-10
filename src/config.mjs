@@ -1,4 +1,4 @@
-import findup from 'findup-sync'
+import {findUp} from 'find-up'
 import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
 
 export function getEnv(env, defaultVal, parseFn) {
@@ -28,9 +28,13 @@ const defaultConfig = {
 }
 
 let config
-export async function loadConfig() {
+export async function loadConfig(configFile = 'bff.config.json') {
   if(config) return config
-  const userConfigPath = findup('bff.config.json')
+
+  const userConfigPath = await findUp(configFile)
+  if(!userConfigPath) {
+    throw Error(`Could not find config file ${configFile}`)
+  }
   console.log('Loading config at', userConfigPath)
   const {default: loadedConfig} = await import(userConfigPath, {with: {type: 'json'}});
 

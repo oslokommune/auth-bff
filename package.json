@@ -17,7 +17,9 @@
   "bin": {
     "auth-bff": "dist/server.mjs"
   },
-  "files": ["/dist"],
+  "files": [
+    "/dist"
+  ],
   "type": "module",
   "author": "",
   "license": "",
@@ -30,11 +32,12 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.817.0",
     "@aws-sdk/client-ssm": "^3.817.0",
+    "command-line-args": "^6.0.1",
     "compression": "^1.8.0",
     "connect-dynamodb": "^3.0.5",
     "express": "^4.21.2",
     "express-session": "^1.18.1",
-    "findup-sync": "^5.0.0",
+    "find-up": "^7.0.0",
     "helmet": "^8.1.0",
     "http-proxy-middleware": "^3.0.5",
     "jose": "^6.0.11",

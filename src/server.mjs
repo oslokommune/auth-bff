@@ -8,8 +8,10 @@ import {securityHeaders} from "./middleware/security-headers.mjs";
 import {sessions} from "./middleware/sessions.mjs";
 import {oidcRoutes} from "./middleware/oidc-routes.mjs";
 import {OidcMiddleware} from "./middleware/oidc.mjs";
+import commandLineArgs from "command-line-args"
 
-const config = await loadConfig()
+const options = commandLineArgs({name: 'configFile'})
+const config = await loadConfig(options.configFile)
 const port = process.env.port || config.port || 8080;
 const oidcMiddleware = await OidcMiddleware.create(config)
 
