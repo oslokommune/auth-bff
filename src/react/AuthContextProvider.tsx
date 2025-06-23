@@ -26,7 +26,8 @@ export function AuthContextProvider({children, authRequired = false, loaderCompo
 
   useEffect(() => {
     if (authRequired && state === 'unauthenticated') {
-      window.location.assign('/auth/login')
+      const currentRelativeLocation = window.location.pathname + window.location.search + window.location.hash
+      window.location.assign(`/auth/login?redirectUrl=${encodeURIComponent(currentRelativeLocation)}`)
     }
   }, [authRequired, state])
 

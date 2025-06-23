@@ -55,15 +55,21 @@ export class OidcMiddleware {
 
       const codeVerifier = generators.codeVerifier()
       const codeChallenge = generators.codeChallenge(codeVerifier)
+      const stateKey = generators.state()
+      const redirectUrl = req.query.redirectUrl
 
       const authorizationUrl = this.#clientManager.client.authorizationUrl({
         scope: "openid profile",
         code_challenge: codeChallenge,
         code_challenge_method: "S256",
         resource: this.#config.resources,
+        state: stateKey
       })
 
       req.session.codeVerifier = codeVerifier
+      req.session.stateKey = stateKey
+      req.session.stateValue = { redirectUrl }
+
       req.session.save(() => {
         res.redirect(authorizationUrl)
       })
@@ -73,22 +79,36 @@ export class OidcMiddleware {
   get callback() {
     return async (req, res) =>  {
       const params = this.#clientManager.client.callbackParams(req)
-      const codeVerifier = req.session.codeVerifier
+      const {codeVerifier, stateKey, stateValue} = req.session
       const redirectUri = `${req.protocol}://${req.headers.host}${this.#config.basePath}/auth/callback`
+
       try {
         const tokenSet = await this.#clientManager.client.callback(redirectUri, params, {
-          code_verifier: codeVerifier
+          code_verifier: codeVerifier,
+          state: stateKey
         })
 
-        delete req.session.codeVerifier
         req.session.tokenSet = new TokenSet(tokenSet)
+
+        delete req.session.codeVerifier
+        delete req.session.stateKey
+        delete req.session.stateValue
+
         req.session.save(() => {
-          res.redirect(this.#config.basePath || "/") //TODO: skal denne kunne redirecte et annet sted?
+          let redirectUrl = stateValue.redirectUrl
+          //only allow relative redirecturls:
+          const absoluteUrlRegex = /^(?:[a-z+]+:)?\/\//
+          if(!redirectUrl || absoluteUrlRegex.test(redirectUrl)) {
+            redirectUrl = this.#config.basePath || "/"
+          }
+          res.redirect(redirectUrl)
         })
 
       } catch (err) {
         console.error(err)
-        res.status(500).send("Error during callback")
+        req.session.destroy(() => {
+          res.status(500).send("Error during callback")
+        })
       }
     }
 
