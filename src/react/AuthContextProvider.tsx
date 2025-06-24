@@ -1,5 +1,6 @@
 import {React, ReactNode, useEffect, useRef, useState} from "react";
 import {AuthContext, AuthContextProps} from "./AuthContext";
+import {setCurrentUser} from "./global-user";
 
 type AuthContextProviderProps = {
   children: ReactNode,
@@ -17,6 +18,7 @@ export function AuthContextProvider({children, authRequired = false, loaderCompo
     .then(json => {
       if (json) {
         setUser(json)
+        setCurrentUser(json)
         setState('authenticated')
       } else {
         setState('unauthenticated')
