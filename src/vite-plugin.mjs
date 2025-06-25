@@ -11,7 +11,7 @@ function configureServer(configFile) {
     const config = await loadConfig(configFile)
     const oidcMiddleware = await OidcMiddleware.create(config)
 
-    const basePath = "" || "/"
+    const basePath = config.basePath || "/"
     const app = express()
 
     app.use(sessions(config))
