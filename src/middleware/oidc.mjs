@@ -4,6 +4,7 @@ import {OidcClientManager} from "../client.mjs";
 export class OidcMiddleware {
   #clientManager
   #config
+  #refreshPromises = {}
 
   /**
    * @private
@@ -21,6 +22,33 @@ export class OidcMiddleware {
     return new OidcMiddleware(config, clientManager)
   }
 
+  async #refreshTokenSet(req, tokenSet) {
+    const sessionId = req.session.id
+    const refreshToken = tokenSet.refresh_token
+
+    const doRefresh = async () => {
+      console.log(`Token refresh starting. sid=${sessionId}`)
+      try {
+        const refreshedTokenSet = await this.#clientManager.client.refresh(refreshToken)
+        console.log(`Token refresh OK. sid=${sessionId}`)
+        return refreshedTokenSet
+      } catch (err) {
+        console.log(`Token refresh failed. sid=${sessionId}`, err)
+        return null
+      }
+    }
+
+    const refreshPromise = this.#refreshPromises[refreshToken] ??= doRefresh().finally(() => {
+      console.log(`Token refresh finished. Cleaning up. sid=${sessionId}`)
+      setTimeout(()=> {
+        delete this.#refreshPromises[refreshToken]
+      }, 10000)
+    })
+    const refreshedTokenSet = await refreshPromise
+    req.session.tokenSet = refreshedTokenSet
+    return refreshedTokenSet
+  }
+
   async #getFreshTokenSet(req) {
     const tokenSet = req.session.tokenSet && new TokenSet(req.session.tokenSet)
     if (!tokenSet) {
@@ -28,24 +56,22 @@ export class OidcMiddleware {
       return
     }
     if (tokenSet.expired()) {
-      try {
-        const refreshedTokenSet = await this.#clientManager.client.refresh(tokenSet.refresh_token)
-        Object.assign(req.session.tokenSet, refreshedTokenSet)
-        return new TokenSet(req.session.tokenSet)
-      } catch (err) {
-        console.log("Token refresh failed", err)
-        req.session.tokenSet = null
-      }
+      const newTokenSet = await this.#refreshTokenSet(req, tokenSet)
+      return newTokenSet && new TokenSet(newTokenSet)
     } else {
       return tokenSet
     }
   }
 
   get ensureFreshToken() {
-    return (req, _, next) => {
+    return (req, res, next) => {
       this.#getFreshTokenSet(req).then(tokenSet => {
-        req.tokenSet = tokenSet
-        next()
+        if(tokenSet) {
+          req.tokenSet = tokenSet
+          next()
+        } else {
+          res.sendStatus(401)
+        }
       })
     }
   }

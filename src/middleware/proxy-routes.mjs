@@ -16,7 +16,7 @@ export function proxyRoutes(config, oidcMiddleware) {
             const tokenSet = req.tokenSet
             if (!tokenSet) {
               console.error("proxy: missing tokenSet")
-              return res.status(401)
+              return
             }
             proxyReq.setHeader("Authorization", `Bearer ${tokenSet.access_token}`)
             proxyReq.removeHeader("Cookie")
