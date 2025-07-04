@@ -24,8 +24,9 @@ export function sessions(config) {
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: {
+    cookie: config.cookie || {
       httpOnly: true,
+      path: config.cookiePath,
       secure: config.cookieSecure,
       sameSite: config.cookieSameSite
     },

@@ -22,6 +22,7 @@ export async function getSsmParameter(name, withDecryption = true) {
 
 const defaultConfig = {
   basePath: "",
+  cookiePath: '/',
   cookieSecure: true,
   cookieSameSite: 'lax',
   staticRootPath: './dist'
