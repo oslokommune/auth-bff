@@ -13,8 +13,17 @@ function configureServer(configFile) {
 
     const basePath = config.basePath || "/"
     const app = express()
+    const sess = sessions(config)
 
-    app.use(sessions(config))
+    app.use((req, res, next) => {
+      if(req.path.startsWith('/src') || req.path.startsWith('/dist')) {
+        next()
+      } else {
+        sess(req, res, next)
+      }
+
+    })
+
     app.use(basePath, oidcRoutes(oidcMiddleware))
     app.use(basePath, proxyRoutes(config, oidcMiddleware))
 
