@@ -1,15 +1,23 @@
-import {React, ReactNode, useEffect, useRef, useState} from "react";
-import {AuthContext, AuthContextProps} from "./AuthContext";
+import {ReactNode, useEffect, useRef, useState} from "react";
+import {AuthContext, AuthContextProps, User} from "./AuthContext";
 import {setCurrentUser} from "./global-user";
+import * as poller from './poller'
 
 type AuthContextProviderProps = {
-  children: ReactNode,
-  authRequired?: boolean,
+  children: ReactNode
+  authRequired?: boolean
   loaderComponent: ReactNode
   baseUrl?: string
+  pollInterval?: number
 }
 
-export function AuthContextProvider({children, authRequired = false, loaderComponent = null, baseUrl = ''}: AuthContextProviderProps) {
+export function AuthContextProvider({
+                                      children,
+                                      authRequired = false,
+                                      loaderComponent = null,
+                                      baseUrl = '',
+                                      pollInterval
+                                    }: AuthContextProviderProps) {
   const [user, setUser] = useState<AuthContextProps['user']>(undefined)
   const [state, setState] = useState<AuthContextProps['state']>('pending')
   const userPromise = useRef<Promise<unknown | void> | undefined>(undefined)
@@ -23,12 +31,55 @@ export function AuthContextProvider({children, authRequired = false, loaderCompo
     window.location.assign(`${baseUrl}/auth/login?redirectUrl=${encodeURIComponent(currentRelativeLocation)}`)
   }
 
+  async function getUser(): Promise<User> {
+    const res = await fetch(`${baseUrl}/auth/user`)
+    if (res.ok) {
+      try {
+        return await res.json()
+      } catch (e) {
+        console.error('failed to parse user', e)
+        return null
+      }
+    } else {
+      return null
+    }
+  }
+
+  function startPoller() {
+    const setExpiredIfNoUser = (user: User) => {
+      if(!user) setState('expired')
+    }
+    poller.start(getUser, setExpiredIfNoUser, pollInterval)
+  }
+
+  function stopPoller() {
+    poller.stop()
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+      startPoller()
+    } else {
+      stopPoller()
+    }
+  }
+
   useEffect(() => {
-    (userPromise.current ??= fetch(`${baseUrl}/auth/user`).then(res => res.ok && res.json()))
-    .then(json => {
-      if (json) {
-        setUser(json)
-        setCurrentUser(json)
+    if (pollInterval && pollInterval > 0 && state === 'authenticated') {
+      startPoller()
+      document.addEventListener('visibilitychange', onVisibilityChange)
+      return () => {
+        stopPoller()
+        document.removeEventListener('visibilitychange', onVisibilityChange)
+      }
+    }
+  }, [pollInterval, state])
+
+  useEffect(() => {
+    userPromise.current ??= getUser().then(user => {
+      if (user) {
+        setUser(user)
+        setCurrentUser(user)
         setState('authenticated')
       } else {
         setState('unauthenticated')
@@ -42,10 +93,23 @@ export function AuthContextProvider({children, authRequired = false, loaderCompo
     }
   }, [authRequired, state])
 
+  function getChildComponent() {
+    if(state === 'pending') {
+      return loaderComponent
+    } else if(state === 'authenticated' || state === 'expired') {
+      return children
+    } else if(state=== 'unauthenticated' && !authRequired) {
+      return children
+    } else {
+      //here you should already have been redirected to login
+      console.warn('not authenticated')
+      return undefined
+    }
+  }
+
   return (
     <AuthContext.Provider value={{user, state, login, logout}}>
-      {(authRequired && state !== 'authenticated' || !authRequired && state === 'pending') && loaderComponent}
-      {(authRequired && state === 'authenticated' || !authRequired && state !== 'pending') && children}
+      {getChildComponent()}
     </AuthContext.Provider>
   )
 }
