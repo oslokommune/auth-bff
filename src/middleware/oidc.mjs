@@ -45,8 +45,12 @@ export class OidcMiddleware {
       }, 10000)
     })
     const refreshedTokenSet = await refreshPromise
-    req.session.tokenSet = refreshedTokenSet
-    return refreshedTokenSet
+    if(refreshedTokenSet) {
+      Object.assign(req.session.tokenSet, refreshedTokenSet)
+    } else {
+      req.session.tokenSet = null
+    }
+    return req.session.tokenSet
   }
 
   async #getFreshTokenSet(req) {
@@ -72,13 +76,12 @@ export class OidcMiddleware {
         } else {
           res.sendStatus(401)
         }
-      })
+      }).catch(next)
     }
   }
 
   get login() {
     return (req, res) => {
-
       const codeVerifier = generators.codeVerifier()
       const codeChallenge = generators.codeChallenge(codeVerifier)
       const stateKey = generators.state()
@@ -103,12 +106,12 @@ export class OidcMiddleware {
   }
 
   get callback() {
-    return async (req, res) =>  {
-      const params = this.#clientManager.client.callbackParams(req)
-      const {codeVerifier, stateKey, stateValue} = req.session
-      const redirectUri = `${req.protocol}://${req.headers.host}${this.#config.basePath}/auth/callback`
-
+    return async (req, res, next) =>  {
       try {
+        const params = this.#clientManager.client.callbackParams(req)
+        const {codeVerifier, stateKey, stateValue} = req.session
+        const redirectUri = `${req.protocol}://${req.headers.host}${this.#config.basePath}/auth/callback`
+
         const tokenSet = await this.#clientManager.client.callback(redirectUri, params, {
           code_verifier: codeVerifier,
           state: stateKey
@@ -130,10 +133,10 @@ export class OidcMiddleware {
           res.redirect(redirectUrl)
         })
 
-      } catch (err) {
-        console.error(err)
+      } catch (e) {
+        console.error(e)
         req.session.destroy(() => {
-          res.status(500).send("Error during callback")
+          next(e)
         })
       }
     }
@@ -141,21 +144,25 @@ export class OidcMiddleware {
   }
 
   get user() {
-    return async (req, res) => {
-      const tokenSet = await this.#getFreshTokenSet(req)
-      if (!tokenSet) {
-        return res.sendStatus(401)
+    return async (req, res, next) => {
+      try {
+        const tokenSet = await this.#getFreshTokenSet(req)
+        if (!tokenSet) {
+          return res.sendStatus(401)
+        }
+        let claims = tokenSet.claims()
+        if(this.#config.userClaims) {
+          claims = this.#config.userClaims.reduce((acc, claim) => {
+            acc[claim] = claims[claim]
+            return acc
+          }, {})
+        }
+        return res.send(claims)
+      } catch (e) {
+        console.error(`Error in /user sid=${req.session?.id}`, e, req.session)
+        next(e)
       }
-      let claims = tokenSet.claims()
-      if(this.#config.userClaims) {
-        claims = this.#config.userClaims.reduce((acc, claim) => {
-          acc[claim] = claims[claim]
-          return acc
-        }, {})
-      }
-      return res.send(claims)
     }
-
   }
 
   get logout() {

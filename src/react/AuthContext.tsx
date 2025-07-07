@@ -6,7 +6,7 @@ export type User = {
 }
 
 export type AuthContextProps = {
-  state: 'pending' | 'authenticated' | 'unauthenticated' | 'expired',
+  state: 'pending' | 'authenticated' | 'unauthenticated' | 'expired' | 'error',
   user?: User
   login: () => void
   logout: () => void

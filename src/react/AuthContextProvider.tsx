@@ -34,14 +34,11 @@ export function AuthContextProvider({
   async function getUser(): Promise<User> {
     const res = await fetch(`${baseUrl}/auth/user`)
     if (res.ok) {
-      try {
-        return await res.json()
-      } catch (e) {
-        console.error('failed to parse user', e)
-        return null
-      }
-    } else {
+      return await res.json()
+    } else if(res.status === 401) {
       return null
+    } else {
+      throw Error(`Failed to get user: ${res.status} ${res.statusText}`)
     }
   }
 
@@ -84,6 +81,9 @@ export function AuthContextProvider({
       } else {
         setState('unauthenticated')
       }
+    }).catch((err) => {
+      console.error(err)
+      setState('error')
     })
   }, [])
 
