@@ -1,5 +1,6 @@
 import {generators, TokenSet} from "openid-client";
 import {OidcClientManager} from "../client.mjs";
+import {redact} from "../utils.js";
 
 export class OidcMiddleware {
   #clientManager
@@ -27,19 +28,19 @@ export class OidcMiddleware {
     const refreshToken = tokenSet.refresh_token
 
     const doRefresh = async () => {
-      console.log(`Token refresh starting. sid=${sessionId}`)
+      console.log(`Token refresh starting. sid=${redact(sessionId)}`)
       try {
         const refreshedTokenSet = await this.#clientManager.client.refresh(refreshToken)
-        console.log(`Token refresh OK. sid=${sessionId}`)
+        console.log(`Token refresh OK. sid=${redact(sessionId)}`)
         return refreshedTokenSet
       } catch (err) {
-        console.log(`Token refresh failed. sid=${sessionId}`, err)
+        console.log(`Token refresh failed. sid=${redact(sessionId)}`, err)
         return null
       }
     }
 
     const refreshPromise = this.#refreshPromises[refreshToken] ??= doRefresh().finally(() => {
-      console.log(`Token refresh finished. Cleaning up. sid=${sessionId}`)
+      console.log(`Token refresh finished. Cleaning up. sid=${redact(sessionId)}`)
       setTimeout(()=> {
         delete this.#refreshPromises[refreshToken]
       }, 10000)
@@ -56,10 +57,11 @@ export class OidcMiddleware {
   async #getFreshTokenSet(req) {
     const tokenSet = req.session.tokenSet && new TokenSet(req.session.tokenSet)
     if (!tokenSet) {
-      console.log("No tokenSet found in session")
+      console.log(`No tokenSet found in session sid=${redact(req.session.id)}`)
       return
     }
     if (tokenSet.expired()) {
+      console.log(`TokenSet expired sid=${redact(req.session.id)}`)
       const newTokenSet = await this.#refreshTokenSet(req, tokenSet)
       return newTokenSet && new TokenSet(newTokenSet)
     } else {
@@ -74,6 +76,7 @@ export class OidcMiddleware {
           req.tokenSet = tokenSet
           next()
         } else {
+          console.warn(`401: No valid tokenSet in session sid=${redact(req.session.id)}`)
           res.sendStatus(401)
         }
       }).catch(next)
@@ -116,8 +119,10 @@ export class OidcMiddleware {
           code_verifier: codeVerifier,
           state: stateKey
         })
+        req.session.tokenSet = tokenSet
 
-        req.session.tokenSet = new TokenSet(tokenSet)
+        const parsedTokenSet = new TokenSet(tokenSet)
+        req.session["idp-sid"] = parsedTokenSet.claims().sid
 
         delete req.session.codeVerifier
         delete req.session.stateKey
@@ -159,7 +164,7 @@ export class OidcMiddleware {
         }
         return res.send(claims)
       } catch (e) {
-        console.error(`Error in /user sid=${req.session?.id}`, e, req.session)
+        console.error(`Error in /user sid=${redact(req.session?.id)}`, e)
         next(e)
       }
     }
@@ -168,15 +173,28 @@ export class OidcMiddleware {
   get logout() {
     return (req, res) => {
       const tokenSet = req.session.tokenSet && new TokenSet(req.session.tokenSet)
-
-      //TODO: støtt frontchannel SLO
-
       req.session.destroy(() => {
         res.redirect(this.#clientManager.client.endSessionUrl({
           id_token_hint: tokenSet?.id_token,
         }))
       })
     }
+  }
 
+  get frontChannelLogout() {
+    return async (req, res) => {
+      const {iss, sid} = req.query
+      console.log(`Front channel logout: params iss=${iss}, sid=${redact(sid)}`)
+      if(sid) {
+        try {
+          await req.destroySessionByIdpSid?.(sid)
+        } catch (e) {
+          console.error("Failed to destroy session", e)
+        }
+      }
+
+      res.sendStatus(200)
+
+    }
   }
 }

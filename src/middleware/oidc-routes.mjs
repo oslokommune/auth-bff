@@ -7,6 +7,7 @@ export function oidcRoutes(oidcMiddleware) {
   router.get('/auth/callback', oidcMiddleware.callback)
   router.get('/auth/logout', oidcMiddleware.logout)
   router.get('/auth/user', oidcMiddleware.user)
+  router.get('/auth/front-channel-logout', oidcMiddleware.frontChannelLogout)
 
   return router
 }

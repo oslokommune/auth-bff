@@ -5,7 +5,7 @@ import {loadConfig} from './config.mjs'
 import {proxyRoutes} from "./middleware/proxy-routes.mjs";
 import {staticRoutes} from "./middleware/static-routes.mjs";
 import {securityHeaders} from "./middleware/security-headers.mjs";
-import {sessions} from "./middleware/sessions.mjs";
+import {sessions} from "./middleware/sessions/sessions.mjs";
 import {oidcRoutes} from "./middleware/oidc-routes.mjs";
 import {OidcMiddleware} from "./middleware/oidc.mjs";
 import commandLineArgs from "command-line-args"
