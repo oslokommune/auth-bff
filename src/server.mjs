@@ -9,6 +9,7 @@ import {sessions} from "./middleware/sessions.mjs";
 import {oidcRoutes} from "./middleware/oidc-routes.mjs";
 import {OidcMiddleware} from "./middleware/oidc.mjs";
 import commandLineArgs from "command-line-args"
+import packageJson from "../package.json" with {type: 'json'}
 
 const options = commandLineArgs({name: 'configFile'})
 const config = await loadConfig(options.configFile)
@@ -41,7 +42,7 @@ app.use(basePath, proxyRoutes(config, oidcMiddleware))
 app.use(basePath, staticRoutes(config))
 
 const server = app.listen(port, () => {
-  console.log(`Server started on port ${port}`)
+  console.log(`auth-bff ${packageJson.version} started on port ${port}`)
 })
 
 process.on('SIGTERM', () => {
