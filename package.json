@@ -1,6 +1,6 @@
 {
   "name": "@oslokommune/auth-bff",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "repository": "https://github.com/oslokommune/auth-bff.git",
   "publishConfig": {
     "access": "public"
@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc",
     "run": "node ./dist/server.mjs",
-    "build-and-publish": "tsc && npm publish"
+    "build-and-publish": "tsc && npm publish",
+    "build-and-publish-prerelease": "tsc && npm publish --tag prerelease"
   },
   "exports": {
     "./vite-plugin": "./dist/vite-plugin.mjs",
@@ -36,8 +37,8 @@
     "command-line-args": "^6.0.1",
     "compression": "^1.8.0",
     "connect-dynamodb": "^3.0.5",
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
+    "express": "4.21.2",
+    "express-session": "1.18.2",
     "find-up": "^7.0.0",
     "helmet": "^8.1.0",
     "http-proxy-middleware": "^3.0.5",
