@@ -21,8 +21,8 @@ export function proxyRoutes(config, oidcMiddleware) {
             proxyReq.setHeader("Authorization", `Bearer ${tokenSet.access_token}`)
             proxyReq.removeHeader("Cookie")
           },
-          proxyRes:(proxyRes, req, res) => {
-            console.log(`proxyied ${req.originalUrl}: ${proxyRes.statusCode}`)
+          proxyRes: (proxyRes, req, res) => {
+            console.log(`Proxied ${req.originalUrl}: ${proxyRes.statusCode}`)
           }
         }
       })

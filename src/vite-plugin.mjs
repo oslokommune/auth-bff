@@ -6,7 +6,7 @@ function configureServer(configFile) {
   return async ({middlewares}) => {
     const {oidcRoutes} = await import("./middleware/oidc-routes.mjs")
     const {proxyRoutes} = await import("./middleware/proxy-routes.mjs")
-    const {sessions} = await import("./middleware/sessions.mjs")
+    const {sessions} = await import("./middleware/sessions/sessions.mjs")
 
     const config = await loadConfig(configFile)
     const oidcMiddleware = await OidcMiddleware.create(config)
@@ -20,7 +20,6 @@ function configureServer(configFile) {
 
     middlewares.use(app)
   }
-
 }
 
 /**
