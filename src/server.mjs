@@ -18,7 +18,7 @@ const oidcMiddleware = await OidcMiddleware.create(config)
 
 const requestLogger = (req, _, next) => {
   next()
-  console.log(`${req.method} ${req.originalUrl}`)
+  console.log(`${req.method} ${req.originalUrl}, referer=${req.get('Referer')}, user-agent=${req.get('User-Agent')}`)
 }
 
 const app = express()
