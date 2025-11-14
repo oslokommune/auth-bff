@@ -1,7 +1,27 @@
 import {findUp} from 'find-up'
 import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
 
-export function getEnv(env, defaultVal, parseFn) {
+export type BffConfig = {
+  basePath: string
+  staticRootPath: string
+  issuer: string
+  clientId: string
+  clientSecret: string
+  redirectUri: string
+  resources: Array<string>
+  cookiePath: string
+  cookieSecure: Boolean
+  cookieSameSite: Boolean | string
+  postLogoutRedirectUri: string
+  okDataIdPortenKeyName: string
+  sessionSecret: string
+  sessionStoreType: 'memory' | 'dynamodb'
+  sessionStoreOptions: object
+  proxyTargets: {[path: string]: string}
+  userClaims: Array<string>
+}
+
+export function getEnv(env: string, defaultVal?: string, parseFn?: (val: string) => string) {
   if (process.env[env]) {
     return parseFn ? parseFn(process.env[env]) : process.env[env]
   } else if (defaultVal !== undefined) {
@@ -11,8 +31,8 @@ export function getEnv(env, defaultVal, parseFn) {
   }
 }
 
-let ssmClient
-export async function getSsmParameter(name, withDecryption = true) {
+let ssmClient: SSMClient
+export async function getSsmParameter(name: string, withDecryption: boolean = true) {
   ssmClient ??= new SSMClient({})
   return ssmClient.send(new GetParameterCommand({
     Name: name,
@@ -20,7 +40,7 @@ export async function getSsmParameter(name, withDecryption = true) {
   })).then(p => p.Parameter.Value)
 }
 
-const defaultConfig = {
+const defaultConfig: Partial<BffConfig> = {
   basePath: "",
   cookiePath: '/',
   cookieSecure: true,
@@ -28,8 +48,8 @@ const defaultConfig = {
   staticRootPath: './dist'
 }
 
-let config
-export async function loadConfig(configFile = 'bff.config.json') {
+let config: BffConfig
+export async function loadConfig(configFile: string = 'bff.config.json') {
   if(config) return config
 
   const userConfigPath = await findUp(configFile)

@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import express from "express"
 import compression from "compression"
-import {loadConfig} from './config.mjs'
+import {loadConfig} from './config.js'
 import {proxyRoutes} from "./middleware/proxy-routes.mjs";
 import {staticRoutes} from "./middleware/static-routes.mjs";
 import {securityHeaders} from "./middleware/security-headers.mjs";
 import {sessions} from "./middleware/sessions/sessions.mjs";
 import {oidcRoutes} from "./middleware/oidc-routes.mjs";
-import {OidcMiddleware} from "./middleware/oidc.mjs";
+import {OidcMiddleware} from "./middleware/oidc.js";
 import commandLineArgs from "command-line-args"
 import packageJson from "../package.json" with {type: 'json'}
 

@@ -1,7 +1,7 @@
 import {ReactNode, useEffect, useRef, useState} from "react";
-import {AuthContext, AuthContextProps, User} from "./AuthContext";
-import {setCurrentUser} from "./global-user";
-import * as poller from './poller'
+import {AuthContext, AuthContextProps, User} from "./AuthContext.jsx";
+import {setCurrentUser} from "./global-user.js";
+import * as poller from './poller.js'
 
 type AuthContextProviderProps = {
   children: ReactNode

@@ -13,16 +13,16 @@ export function proxyRoutes(config, oidcMiddleware) {
         changeOrigin: true,
         on: {
           proxyReq: (proxyReq, req, res) => {
-            const tokenSet = req.tokenSet
-            if (!tokenSet) {
-              console.error("proxy: missing tokenSet")
+            const accessToken = req.tokenResponse?.access_token
+            if (!accessToken) {
+              console.error("proxy: missing token")
               return
             }
-            proxyReq.setHeader("Authorization", `Bearer ${tokenSet.access_token}`)
+            proxyReq.setHeader("Authorization", `Bearer ${accessToken}`)
             proxyReq.removeHeader("Cookie")
           },
           proxyRes: (proxyRes, req, res) => {
-            console.log(`Proxied ${req.originalUrl}: ${proxyRes.statusCode}`)
+            console.log(`Proxied ${req.originalUrl} -> ${target}${req.originalUrl}: ${proxyRes.statusCode}`)
           }
         }
       })
