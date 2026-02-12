@@ -15,9 +15,11 @@ export class OpenIdConfigManager {
 
   #bffConfig: BffConfig
   #openIdConfig: client.Configuration
+  #serverMetadata: client.ServerMetadata
 
-  constructor(config: BffConfig) {
+  constructor(config: BffConfig, serverMetadata?: client.ServerMetadata) {
     this.#bffConfig = config
+    this.#serverMetadata = serverMetadata
   }
 
   async init() {
@@ -64,6 +66,14 @@ export class OpenIdConfigManager {
       console.log('Reusing OpenId Config with new key')
       this.#openIdConfig = new client.Configuration(
         this.#openIdConfig.serverMetadata(),
+        clientId,
+        clientMetadata,
+        clientAuth
+      )
+    } else if(this.#serverMetadata) {
+      console.log('Using OpenId Config with provided server metadata')
+      this.#openIdConfig = new client.Configuration(
+        this.#serverMetadata,
         clientId,
         clientMetadata,
         clientAuth

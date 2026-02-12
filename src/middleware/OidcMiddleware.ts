@@ -1,5 +1,5 @@
 import * as openIdClient from "openid-client";
-import {OpenIdConfigManager} from "../client.js";
+import {OpenIdConfigManager} from "../OpenIdConfigManager.js";
 import {redact} from "../utils.js";
 import {BffConfig} from "../config.js";
 import type {Request, Response, NextFunction} from 'express'
@@ -74,13 +74,13 @@ export class OidcMiddleware {
       return
     }
     const now = new Date().getTime()
-    const expiresAt = req.session.accessTokenExpiresAt
-    if(!expiresAt) {
+    const expiresAt = req.session.accessTokenExpiresAt || 0
+    /*if(!expiresAt) {
       //For at ting ikke skal eksplodere hvis man får inn en gammel session.
       //TODO: denne kan fjernes når den har kjørt i prod i et døgn+
       console.error('accessTokenExpiresAt was not set')
       return
-    }
+    }*/
     const expiresInSeconds = (expiresAt - now) / 1000
     if (expiresInSeconds < 5) {
       console.log(`Access token expired. sid=${redact(req.session.id)}, expiresInSeconds=${expiresInSeconds}`)
@@ -160,9 +160,8 @@ export class OidcMiddleware {
   get callback() {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
-        // const params = this.#configManager.client.callbackParams(req)
         const {codeVerifier, stateKey, stateValue} = req.session
-        const url = new URL(`${req.protocol}://${req.headers.host}${this.#bffConfig.basePath}${req.originalUrl}`)
+        const url = new URL(`${req.protocol}://${req.headers.host}${req.originalUrl}`)
         const tokenResponse = await openIdClient.authorizationCodeGrant(
           this.#openIdConfig,
           url,
@@ -198,7 +197,6 @@ export class OidcMiddleware {
         })
       }
     }
-
   }
 
   get user() {
@@ -206,6 +204,7 @@ export class OidcMiddleware {
       try {
         const tokenResponse = await this.#getFreshTokens(req)
         if (!tokenResponse) {
+          console.log('/user 401: No tokenset')
           return res.sendStatus(401)
         }
 

@@ -2,21 +2,21 @@ import {findUp} from 'find-up'
 import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
 
 export type BffConfig = {
-  basePath: string
-  staticRootPath: string
+  basePath?: string
+  staticRootPath?: string
   issuer: string
   clientId: string
-  clientSecret: string
+  clientSecret?: string
   redirectUri: string
   resources: Array<string>
-  cookiePath: string
-  cookieSecure: Boolean
+  cookiePath?: string
+  cookieSecure?: Boolean
   cookieSameSite: Boolean | string
   postLogoutRedirectUri: string
   okDataIdPortenKeyName: string
   sessionSecret: string
   sessionStoreType: 'memory' | 'dynamodb'
-  sessionStoreOptions: object
+  sessionStoreOptions?: object
   proxyTargets: {[path: string]: string}
   userClaims: Array<string>
 }

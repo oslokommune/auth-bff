@@ -1,6 +1,6 @@
 import express from "express"
 import {loadConfig} from "./config.js";
-import {OidcMiddleware} from "./middleware/oidc.js";
+import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
 
 function configureServer(configFile) {
   return async ({middlewares}) => {

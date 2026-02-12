@@ -22,7 +22,7 @@ export function proxyRoutes(config, oidcMiddleware) {
             proxyReq.removeHeader("Cookie")
           },
           proxyRes: (proxyRes, req, res) => {
-            console.log(`Proxied ${req.originalUrl} -> ${target}${req.originalUrl}: ${proxyRes.statusCode}`)
+            console.log(`Proxied: ${req.method} ${req.originalUrl} -> ${proxyRes.req.protocol}//${proxyRes.req.host}${proxyRes.req.path}, status=${proxyRes.statusCode}`)
           }
         }
       })

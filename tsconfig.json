@@ -5,9 +5,9 @@
   ],
   "compilerOptions": {
     "target": "ES2020",
-    "module": "Node16",
+    "module": "Node18",
     "jsx": "preserve",
-
+    "resolveJsonModule": true,
     "moduleResolution": "Node16",
     // Tells TypeScript to read JS files, as
     // normally they are ignored as source files

@@ -1,0 +1,78 @@
+import { expect, test, vi } from 'vitest'
+import request from "supertest"
+import {testApp} from "./testApp.js"
+import session from "express-session"
+
+let sessionStore: session.MemoryStore
+
+vi.mock(import("../src/middleware/sessions/memorySessionStore.mjs"), async (importOriginal) => {
+  const originalModule = await importOriginal()
+  return {
+    memorySessionStore: () => sessionStore = originalModule.memorySessionStore()
+  }
+})
+
+// vi.mock(import('openid-client'), async (importOriginal) => {
+//   const originalModule = await importOriginal()
+//   return {
+//     ...originalModule,
+//     authorizationCodeGrant: vi.fn(() => Promise.resolve(exampleTokenResponse))
+//   }
+// })
+
+const app = await testApp()
+
+function getSessionId(res: any) {
+  let cookie = res.get('set-cookie')
+  if(!Array.isArray(cookie)) {
+    cookie = [cookie]
+  }
+  const connectCookie = cookie.find((c: string) => c.startsWith('connect.sid'))
+  const [,sid] = connectCookie.match(/connect\.sid=s%3A(.+)\./)
+  return sid
+}
+
+function getSession(res: any) {
+  const sid = getSessionId(res)
+  return JSON.parse(sessionStore['sessions'][sid])
+}
+
+function setSession(id: string, content: object) {
+  sessionStore['sesssions'][id] = JSON.stringify(content)
+}
+
+test("/login", async () => {
+  const response = await request(app)
+    .get('/auth/login?redirectUrl=/barnehage')
+
+  expect(response.statusCode).toBe(302)
+  expect(response.get('location')).not.toBeNull()
+
+  const location = new URL(response.get('location'))
+  const codeChallenge = location.searchParams.get('code_challenge')
+  const state = location.searchParams.get('state')
+
+  expect(location.host).toBe('login.test.idporten.no') //fra openid-config
+  expect(location.searchParams.get('scope')).toBe('openid profile')
+  expect(location.searchParams.get('response_type')).toBe('code')
+  expect(state).not.toBeNull()
+  expect(codeChallenge).not.toBeNull()
+  expect(location.searchParams.get('code_challenge_method')).toBe('S256')
+  expect(location.searchParams.get('redirect_uri')).toBe('http://localhost:3000/auth/callback') //fra bff-config
+  expect(location.searchParams.get('client_id')).toBe('test-client') //fra bff-config
+  expect(location.searchParams.get('resource')).toBe('https://test.resource/api') //fra bff-config
+
+  const session = getSession(response)
+  expect(session['codeVerifier']).not.toBeNull()
+  expect(session['stateKey']).toBe(state)
+  expect(session['stateValue']['redirectUrl']).toBe('/barnehage')
+
+})
+
+test.skip('/callback', async () => {
+  const response = await request(app)
+    .get('/auth/callback?code=test-code&iss=https%3A%2F%2Ftest.idporten.no&state=test-state')
+
+  expect(response.statusCode).toBe(302)
+  //TODO: må mocke kallet til auth-server
+})
