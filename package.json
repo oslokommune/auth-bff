@@ -7,17 +7,17 @@
   },
   "scripts": {
     "build": "tsc",
-    "run": "node ./dist/server.mjs",
+    "run": "node ./dist/src/server.js",
     "build-and-publish": "tsc && npm publish",
     "build-and-publish-prerelease": "tsc && npm publish --tag prerelease",
     "test": "vitest"
   },
   "exports": {
-    "./vite-plugin": "./dist/src/vite-plugin.mjs",
+    "./vite-plugin": "./dist/src/vite-plugin.js",
     "./react": "./dist/src/react/index.js"
   },
   "bin": {
-    "auth-bff": "dist/src/server.mjs"
+    "auth-bff": "dist/src/server.js"
   },
   "files": [
     "/dist"
@@ -27,6 +27,7 @@
   "license": "",
   "description": "",
   "devDependencies": {
+    "@types/command-line-args": "^5.2.3",
     "@types/compression": "^1.8.1",
     "@types/express": "^4.17.22",
     "@types/express-session": "^1.18.2",

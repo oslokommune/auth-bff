@@ -10,6 +10,9 @@ declare module 'express-session' {
     userClaims: Partial<IDToken>
     accessTokenExpiresAt?: number
   }
+  interface Store {
+    destroyByIdpSid?: (id: string) => Promise<void>
+  }
 }
 
 declare module 'express' {

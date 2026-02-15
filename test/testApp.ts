@@ -2,11 +2,11 @@ import openidConfig from './config/openid-configuration.json' with { type: 'json
 import {OpenIdConfigManager} from "../src/OpenIdConfigManager.js";
 import {loadConfig} from "../src/config.js";
 import {OidcMiddleware} from "../src/middleware/OidcMiddleware.js";
-import {oidcRoutes} from "../src/middleware/oidc-routes.mjs";
-import {sessions} from "../src/middleware/sessions/sessions.mjs";
-import {securityHeaders} from "../src/middleware/security-headers.mjs";
-import {staticRoutes} from "../src/middleware/static-routes.mjs";
-import {proxyRoutes} from "../src/middleware/proxy-routes.mjs";
+import {oidcRoutes} from "../src/middleware/oidc-routes.js";
+import {sessions} from "../src/middleware/sessions/sessions.js";
+import {securityHeaders} from "../src/middleware/security-headers.js";
+import {staticRoutes} from "../src/middleware/static-routes.js";
+import {proxyRoutes} from "../src/middleware/proxy-routes.js";
 import express from "express";
 import compression from "compression"
 

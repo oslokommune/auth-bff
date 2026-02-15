@@ -1,13 +1,14 @@
 import {DeleteItemCommand, DynamoDBClient, QueryCommand} from "@aws-sdk/client-dynamodb";
-import dynamoDbStore from "connect-dynamodb";
+import dynamoDbStore, {DynamoDBStoreOptions} from "connect-dynamodb";
 import session from "express-session";
 import {redact} from "../../utils.js";
+import {BffConfig} from "../../config.js";
 
-const destroyByIdpSid = (config, client) => {
-  return async (idpSid) => {
+const destroyByIdpSid = (config: BffConfig['sessionStoreOptions'], client: DynamoDBClient) => {
+  return async (idpSid: string) => {
     console.log(`Front channel logout: deleting session(s) with idp-sid=${redact(idpSid)}`)
     const query = new QueryCommand({
-      TableName: config.table,
+      TableName: config['table'],
       IndexName: "idp-sid-index",
       ExpressionAttributeValues: {":sid": {S: idpSid}},
       ExpressionAttributeNames: {"#k": "idp-sid"},
@@ -18,7 +19,7 @@ const destroyByIdpSid = (config, client) => {
     await Promise.all(res.Items.map((item) => {
       console.log(`Front channel logout: deleting session ${redact(item.id?.S, 10)}`)
       return client.send(new DeleteItemCommand({
-        TableName: config.table,
+        TableName: config['table'],
         Key: {id: item.id}
       }))
     }))
@@ -29,8 +30,8 @@ const destroyByIdpSid = (config, client) => {
 
 export function dynamoDbSessionStore(config = {}) {
   const client = new DynamoDBClient({})
-  const DynamoDbStore = dynamoDbStore({session})
-  const sessionStoreConfig = {
+  const DynamoDbStore = dynamoDbStore(session)
+  const sessionStoreConfig: DynamoDBStoreOptions = {
     ...config,
     client,
     specialKeys: [

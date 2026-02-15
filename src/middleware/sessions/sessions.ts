@@ -1,9 +1,11 @@
 import session from "express-session";
-import {dynamoDbSessionStore} from "./dynamoDbSessionStore.mjs";
-import {memorySessionStore} from "./memorySessionStore.mjs";
+import {dynamoDbSessionStore} from "./dynamoDbSessionStore.js";
+import {memorySessionStore} from "./memorySessionStore.js";
+import {BffConfig} from "../../config.js";
+import {Request, Response, NextFunction} from "express";
 
-export function sessions(config) {
-  let sessionStore
+export function sessions(config: BffConfig) {
+  let sessionStore: session.Store
   if (config.sessionStoreType === 'memory') {
     const sessionStoreOptions = config.sessionStoreOptions ?? {}
     sessionStore = memorySessionStore(sessionStoreOptions)
@@ -29,7 +31,7 @@ export function sessions(config) {
         sameSite: config.cookieSameSite
       },
     }),
-    (req, _, next) => {
+    (req: Request , _: Response, next: NextFunction) => {
       // make this function available to request handlers
       req.destroySessionByIdpSid = sessionStore?.destroyByIdpSid
       next()

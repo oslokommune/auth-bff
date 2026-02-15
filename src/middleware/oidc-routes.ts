@@ -1,7 +1,8 @@
 import express from "express";
+import {OidcMiddleware} from "./OidcMiddleware.js";
 
-export function oidcRoutes(oidcMiddleware) {
-  const router = new express.Router()
+export function oidcRoutes(oidcMiddleware: OidcMiddleware) {
+  const router = express.Router()
 
   router.get('/auth/login', oidcMiddleware.login)
   router.get('/auth/callback', oidcMiddleware.callback)

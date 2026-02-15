@@ -1,7 +1,14 @@
 import {findUp} from 'find-up'
 import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
+import {HelmetOptions} from "helmet";
+import session from "express-session";
 
 export type BffConfig = {
+  /**
+   * The port at which the app will be served. Only used in standalone mode, to change the port used during development,
+   * set it in your vite config instead.
+   */
+  port: number
   /**
    * The base root path. Change if app is served from a non-root path.
    *
@@ -40,6 +47,10 @@ export type BffConfig = {
    */
   resources?: Array<string>
   /**
+   * express-session cookie options, note that if this is set, the below cookie*-options will have no effect
+   */
+  cookie?: session.CookieOptions
+  /**
    * Sets the Path attribute of the cookie. Should most likely be the same as basePath. See https://expressjs.com/en/resources/middleware/session.html
    *
    * Default: `/`
@@ -50,13 +61,13 @@ export type BffConfig = {
    *
    * Default: `true`
    */
-  cookieSecure?: Boolean
+  cookieSecure?: boolean
   /**
    * Sets the SameSite attribute of the cookie. See https://expressjs.com/en/resources/middleware/session.html
    *
    * Default: `"lax"`
    */
-  cookieSameSite: Boolean | string
+  cookieSameSite: boolean | "lax" | "none" | "strict"
   /**
    * The post logout redirect uri configured for the client
    */
@@ -110,7 +121,7 @@ export type BffConfig = {
    *     }
    * ```
    */
-  contentSecurityPolicy?: object
+  contentSecurityPolicy?: Exclude<HelmetOptions['contentSecurityPolicy'], Boolean>
 }
 
 const defaultConfig: Partial<BffConfig> = {

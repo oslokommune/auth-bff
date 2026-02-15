@@ -5,7 +5,7 @@ import session from "express-session"
 
 let sessionStore: session.MemoryStore
 
-vi.mock(import("../src/middleware/sessions/memorySessionStore.mjs"), async (importOriginal) => {
+vi.mock(import("../src/middleware/sessions/memorySessionStore.js"), async (importOriginal) => {
   const originalModule = await importOriginal()
   return {
     memorySessionStore: () => sessionStore = originalModule.memorySessionStore()
