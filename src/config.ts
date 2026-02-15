@@ -99,7 +99,7 @@ export type BffConfig = {
    */
   proxyTargets: { [path: string]: string }
   /**
-   * List of claims in the access token that are returned by the /user-endpoint. By default all are returned
+   * List of claims in the id_token that are returned by the /user-endpoint. By default all are returned
    *
    * Example: `["pid"]`
    */
