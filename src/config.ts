@@ -152,10 +152,9 @@ export async function getSsmParameter(name: string, withDecryption: boolean = tr
   })).then(p => p.Parameter.Value)
 }
 
-
 let config: BffConfig
 
-export async function loadConfig(configFile: string = 'bff.config.json') {
+export async function loadConfig(configFile: string | Array<string> = 'bff.config.json') {
   if (config) return config
 
   const userConfigPath = await findUp(configFile)

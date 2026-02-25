@@ -3,7 +3,7 @@ import {loadConfig} from "./config.js";
 import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
 import {ViteDevServer, Plugin} from 'vite'
 
-function configureServer(configFilePath?: string) {
+function configureServer(configFilePath?: string | Array<string>) {
   return async ({middlewares}: ViteDevServer) => {
     const {oidcRoutes} = await import("./middleware/oidc-routes.js")
     const {proxyRoutes} = await import("./middleware/proxy-routes.js")
@@ -23,7 +23,7 @@ function configureServer(configFilePath?: string) {
   }
 }
 
-export default function bff({configFile}: {configFile?: string} = {}): Plugin {
+export default function bff({configFile}: {configFile?: string | Array<string>} = {}): Plugin {
   return {
     name: 'bff',
     apply: 'serve',
