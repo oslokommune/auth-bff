@@ -1,6 +1,6 @@
 {
   "name": "@oslokommune/auth-bff",
-  "version": "2.0.0-beta2",
+  "version": "2.0.0-beta3",
   "repository": "https://github.com/oslokommune/auth-bff.git",
   "publishConfig": {
     "access": "public"

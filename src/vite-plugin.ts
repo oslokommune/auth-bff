@@ -1,7 +1,7 @@
 import express from "express"
 import {loadConfig} from "./config.js";
 import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
-import {ViteDevServer} from 'vite'
+import {ViteDevServer, Plugin} from 'vite'
 
 function configureServer(configFilePath?: string) {
   return async ({middlewares}: ViteDevServer) => {
@@ -23,7 +23,7 @@ function configureServer(configFilePath?: string) {
   }
 }
 
-export default function bff({configFile}: {configFile?: string} = {}) {
+export default function bff({configFile}: {configFile?: string} = {}): Plugin {
   return {
     name: 'bff',
     apply: 'serve',
