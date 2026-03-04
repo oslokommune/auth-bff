@@ -204,6 +204,9 @@ A new key has been created and the following parameters have been written to SSM
 }
 ```
 
+Note that when using `okDataIdPortenKeyName`, that key is used for authentication, and `clientSecret` is not used.
+Also, since the key is fetched from Parameter Store, you must set AWS_PROFILE and be signed in to that profile when running locally.
+
 3. Done!
 
 ## Configuring session storage
@@ -216,7 +219,8 @@ sessions during front-channel logout)
 > If the table does not exist, it will be automatically created with settings not appropriate for production.
 
 
-Here is an example configuration in terraform
+Here is an example configuration in terraform. If you are using (https://km.oslo.systems/)[Golden Path],
+you can simply copy this to a file in your application stack, and run `terraform apply`
 
 ```terraform
 resource "aws_dynamodb_table" "session_dynamodb_table" {

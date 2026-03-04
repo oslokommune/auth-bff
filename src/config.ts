@@ -79,7 +79,7 @@ export type BffConfig = {
    */
   okDataIdPortenKeyName: string
   /**
-   * Secret used to sign sessions
+   * Secret used to sign sessions. This can be any string, but should have at least 32 bytes of entropy in production.
    */
   sessionSecret: string
   /**
