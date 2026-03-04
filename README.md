@@ -65,6 +65,7 @@ auth-bff
 When running in docker you should specify the version to use, and make sure it matches the one used in package.json.
 
 Example dockerfile:
+
 ```dockerfile
 FROM node:23-alpine AS base
 
@@ -85,7 +86,8 @@ COPY bff.config.json /application/
 CMD ["auth-bff"]
 ```
 
-To use different configuration for different environments, you can create separate config files for each and select it at build time (using build args). 
+To use different configuration for different environments, you can create separate config files for each and select it
+at build time (using build args).
 For example, with `bff.config.dev.json` and `bff.config.prod.json`:
 
 ```dockerfile
@@ -94,13 +96,12 @@ COPY bff.config.${ENVIRONMENT}.json /application/bff.config.json
 CMD ["auth-bff"]
 ```
 
-Or select it at runtime, using an env var: 
+Or select it at runtime, using an env var:
 
 ```dockerfile
 COPY bff.config*.json /application/
 CMD exec auth-bff --configFile bff.config.${ENVIRONMENT}.json
 ```
-
 
 ## Configuration
 
@@ -160,7 +161,7 @@ AWS Parameter store:
 This loads from the configured AWS environment. For this to work on your local machine the `AWS_PROFILE` environment
 variable must be set, and you must be signed in to that profile
 
-ℹ️ [See `config.ts` for a description of all config parameters](src/config.ts) 
+ℹ️ [See `config.ts` for a description of all config parameters](src/config.ts)
 
 ## Using with ID-porten (via `okdata`):
 
@@ -205,7 +206,8 @@ A new key has been created and the following parameters have been written to SSM
 ```
 
 Note that when using `okDataIdPortenKeyName`, that key is used for authentication, and `clientSecret` is not used.
-Also, since the key is fetched from Parameter Store, you must set AWS_PROFILE and be signed in to that profile when running locally.
+Also, since the key is fetched from Parameter Store, you must set AWS_PROFILE and be signed in to that profile when
+running locally.
 
 3. Done!
 
@@ -291,8 +293,8 @@ dynamodb:UpdateItem
 
 ## React component
 
-This package also includes a React component for handling authentication state. It will redirect to login if required 
-and optionally automatically poll for changes to authentication state. 
+This package also includes a React component for handling authentication state. It will redirect to login if required
+and optionally automatically poll for changes to authentication state.
 
 ### AuthContextProvider
 
@@ -301,28 +303,28 @@ import {AuthContextProvider} from "@oslokommune/auth-bff/react";
 import {PktLoader} from "@oslokommune/punkt-react";
 
 const fiveMinutes = 5 * 60 * 1000;
-  
+
 <AuthContextProvider authRequired={true} loaderComponent={<PktLoader/>} pollInterval={fiveMinues}>
   <App/>
 </AuthContextProvider>
 ```
 
-| Option         | Description                                                                                                                                           |
-|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| authRequired   | Whether authentication is required. If true, will redirect to login before rendering child components (default: true)                                 |
+| Option          | Description                                                                                                                                           |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| authRequired    | Whether authentication is required. If true, will redirect to login before rendering child components (default: true)                                 |
 | loaderComponent | React component to display while loading auth state. (default: null)                                                                                  |
-| baseUrl        | Must be set to the same baseUrl as in the json config for login/logout to work correctly (default: '')                                                |
-| pollInterval   | Minimum interval in milliseconds between checks if session is still active. Will set authState to 'expired' if session is expired (default: disabled) |
-
+| baseUrl         | Must be set to the same baseUrl as in the json config for login/logout to work correctly (default: '')                                                |
+| pollInterval    | Minimum interval in milliseconds between checks if session is still active. Will set authState to 'expired' if session is expired (default: disabled) |
 
 ### useAuthContext
 
 Hook to get current AuthState. Must be called in a component inside the AuthContextProvider.
+
 ```tsx
 import {useAuthContext} from "@oslokommune/auth-bff/react";
 
 const {user, authState, login} = useAuthContext()
-if(authState === 'authenticated') {
+if (authState === 'authenticated') {
   console.log(`Hello, ${user.pid}`)
 } else {
   login()
@@ -338,6 +340,7 @@ if(authState === 'authenticated') {
 | authState | Current auth state. See table below for values                                                                                                                   |                                                                                                                                              |                                                                                                                                                         |
 
 #### AuthState
+
 | Value           | Description                                                                                                      |
 |-----------------|------------------------------------------------------------------------------------------------------------------|
 | pending         | Initial value before auth state has been determined                                                              |
@@ -346,3 +349,9 @@ if(authState === 'authenticated') {
 | expired         | User was authenticated, but the session has expired. Can be used to display message to user or redirect to login |                                                                                                                                              |                                                                                                                                                         |
 | error           | Failed to determine auth state                                                                                   |                                                                                                                                              |                                                                                                                                                         |
 
+## Content Security Policy
+
+To configure the content security policy returned by the server, use the `contentSecurityPolicy` config option. This
+configuration is passed almost as-is to (helmet)[https://github.com/helmetjs/helmet]. Since our configuration is json
+only, not all features are supported. To set a nonce, use the special form `"{nonce}"` instead. It will be replaced by a
+generated nonce for each request.
