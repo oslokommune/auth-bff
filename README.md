@@ -211,6 +211,25 @@ running locally.
 
 3. Done!
 
+
+## Using with Entra ID: 
+When using the package with Entra ID, you need to get credentials from Azure. You need to collect following credentials in order to be able to use this package:
+
+* issuer
+* client id
+* client secret
+
+With Entra ID you need to make sure to remove `"okDataIdPortenKeyName"`from the configuration file and replace it with client secret.
+
+```json
+{
+  "issuer": "https://login.microsoftonline.com/{TENANT_ID}/v2.0",
+  "clientId": "1111111q-2bab-3333-c444-5555e556cb55",
+  "clientSecret": "7dW3Q~_sdfj3-4f5g-6789-h0i1-2j3k4l5m6n7",
+  ...
+}
+```
+
 ## Configuring session storage
 
 Currently only dynamoDb is supported for storing sessions in production. It requires some setup.
