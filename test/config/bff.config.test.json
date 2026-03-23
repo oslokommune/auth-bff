@@ -7,6 +7,7 @@
   "resources": ["https://test.resource/api"],
   "redirectUri": "http://localhost:3000/auth/callback",
   "postLogoutRedirectUri": "http://localhost:3000",
+  "scope": "openid profile other",
   "cookieSecure": false,
   "cookieSameSite": false,
   "postLogoutRedirectUris": ["http://localhost:3000/"],

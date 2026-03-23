@@ -113,7 +113,7 @@ export class OidcMiddleware {
         const redirectUrl = req.query.redirectUrl as string //TODO: håndtering av andre typer her?
 
         const params = new URLSearchParams()
-        params.append('scope', "openid profile")
+        params.append('scope', this.#bffConfig.scope)
         params.append('code_challenge', codeChallenge)
         params.append('code_challenge_method', 'S256')
         params.append('redirect_uri', this.#bffConfig.redirectUri)
