@@ -53,7 +53,7 @@ test("/login", async () => {
   const state = location.searchParams.get('state')
 
   expect(location.host).toBe('login.test.idporten.no') //fra openid-config
-  expect(location.searchParams.get('scope')).toBe('openid profile')
+  expect(location.searchParams.get('scope')).toBe('openid profile other')
   expect(location.searchParams.get('response_type')).toBe('code')
   expect(state).not.toBeNull()
   expect(codeChallenge).not.toBeNull()

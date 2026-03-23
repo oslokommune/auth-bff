@@ -32,6 +32,10 @@ export type BffConfig = {
    */
   clientId: string
   /**
+   * Sets the scope parameter. Values are case-sensitive. Multiple values must be sepratated by space. Default: `openid profile`
+   */
+  scope: string
+  /**
    * The client secret. Not used if `okDataIdPortenKeyName` is set.
    */
   clientSecret?: string
@@ -129,7 +133,8 @@ const defaultConfig: Partial<BffConfig> = {
   cookiePath: '/',
   cookieSecure: true,
   cookieSameSite: 'lax',
-  staticRootPath: './dist'
+  staticRootPath: './dist',
+  scope: 'openid profile'
 }
 
 export function getEnv(env: string, defaultVal?: string, parseFn?: (val: string) => string) {
