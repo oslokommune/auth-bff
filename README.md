@@ -81,7 +81,7 @@ WORKDIR /application
 EXPOSE 8080
 COPY --from=react-build /home/react/dist /application/dist
 ENV NODE_ENV=production
-RUN npm install -g @oslokommune/auth-bff@2.0.0-beta4
+RUN npm install -g @oslokommune/auth-bff@2.0.0-beta6
 COPY bff.config.json /application/
 CMD ["auth-bff"]
 ```
