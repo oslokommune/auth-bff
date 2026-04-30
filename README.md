@@ -4,14 +4,14 @@ A NodeJS Backend for frontend.
 
 Features:
 
+* Serves a static web app
+* Proxies API calls, with the user's access token
 * Two "modes" of operation
     * A vite plugin for use during development
     * A standalone mode for use in production (e.g. inside a docker container)
 * Supports generic OIDC auth code flow clients
 * Has special support for `okdata`-generated Idporten clients
 * Handles login/logout and sessions (using DynamoDb as a store)
-* Proxies API calls
-* Serves a static web app
 * Includes simple React components for handling login-state
 
 See https://github.com/oslokommune/auth-bff-example for an example React app using this package.
@@ -161,7 +161,8 @@ AWS Parameter store:
 This loads from the configured AWS environment. For this to work on your local machine the `AWS_PROFILE` environment
 variable must be set, and you must be signed in to that profile
 
-ℹ️ [See `config.ts` for a description of all config parameters](src/config.ts)
+> [!NOTE]  
+>️ See [`config.ts`](src/config.ts) for a description of all config parameters
 
 ## Using with ID-porten (via `okdata`):
 
@@ -240,7 +241,7 @@ sessions during front-channel logout)
 > If the table does not exist, it will be automatically created with settings not appropriate for production.
 
 
-Here is an example configuration in terraform. If you are using (https://km.oslo.systems/)[Golden Path],
+Here is an example configuration in terraform. If you are using [Golden Path](https://km.oslo.systems/),
 you can simply copy this to a file in your application stack, and run `terraform apply`
 
 ```terraform
@@ -371,6 +372,6 @@ if (authState === 'authenticated') {
 ## Content Security Policy
 
 To configure the content security policy returned by the server, use the `contentSecurityPolicy` config option. This
-configuration is passed almost as-is to (helmet)[https://github.com/helmetjs/helmet]. Since our configuration is json
+configuration is passed almost as-is to [helmet](https://github.com/helmetjs/helmet). Since our configuration is json
 only, not all features are supported. To set a nonce, use the special form `"{nonce}"` instead. It will be replaced by a
 generated nonce for each request.
