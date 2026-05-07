@@ -372,6 +372,26 @@ if (authState === 'authenticated') {
 ## Content Security Policy
 
 To configure the content security policy returned by the server, use the `contentSecurityPolicy` config option. This
-configuration is passed almost as-is to [helmet](https://github.com/helmetjs/helmet). Since our configuration is json
-only, not all features are supported. To set a nonce, use the special form `"{nonce}"` instead. It will be replaced by a
-generated nonce for each request.
+configuration is passed almost as-is to [helmet](https://github.com/helmetjs/helmet). Note that since our configuration is json
+only, not all features are supported.
+
+### Nonce 
+To set a nonce, use the special form `"{nonce}"`. It will be replaced by a
+generated nonce for each request. For example:
+```json
+{
+  "contentSecurityPolicy": {
+    "directives": {
+      ...
+      "script-src": ["'self'", "{nonce}", ...]
+    }
+  }
+}
+```
+
+To use a nonce in your app, use `__CSP_NONCE__` in your html. It will be replaced with a nonce for each request:
+```html
+<script nonce="__CSP_NONCE__">
+    ...
+</script>
+```
