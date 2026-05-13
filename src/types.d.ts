@@ -17,7 +17,7 @@ declare module 'express-session' {
 
 declare module 'express' {
   interface Request {
-    tokenResponse: TokenEndpointResponse
+    tokenResponse?: TokenEndpointResponse
     destroySessionByIdpSid?: (id: string) => Promise<void>
   }
 }

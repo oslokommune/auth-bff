@@ -103,6 +103,14 @@ export type BffConfig = {
    */
   proxyTargets: { [path: string]: string }
   /**
+   * Like `proxyTargets`, but anonymous requests pass through instead of being rejected. The access
+   * token is still forwarded when a session exists. Registered before `proxyTargets`, so a public
+   * path takes precedence over an overlapping protected one.
+   *
+   * Example: `{'/api/public': 'http://example.com/api/public'}`
+   */
+  publicProxyTargets?: { [path: string]: string }
+  /**
    * List of claims in the id_token that are returned by the /user-endpoint. By default all are returned
    *
    * Example: `["pid"]`

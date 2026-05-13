@@ -76,3 +76,15 @@ test.skip('/callback', async () => {
   expect(response.statusCode).toBe(302)
   //TODO: må mocke kallet til auth-server
 })
+
+test('protected proxy target returns 401 without session', async () => {
+  const response = await request(app).get('/barnehageside/api/anything')
+  expect(response.statusCode).toBe(401)
+})
+
+test('public proxy target does not require a session', async () => {
+  // Target is an unreachable port, so the proxy itself fails with 5xx. Point is: not 401.
+  const response = await request(app).get('/barnehageside/public/anything')
+  expect(response.statusCode).not.toBe(401)
+  expect(response.statusCode).toBeGreaterThanOrEqual(500)
+})

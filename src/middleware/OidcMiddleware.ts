@@ -104,6 +104,18 @@ export class OidcMiddleware {
     }
   }
 
+  /** Like `ensureFreshToken`, but never rejects. Attaches `req.tokenResponse` if available. */
+  get optionalFreshToken() {
+    return (req: Request, _res: Response, next: NextFunction) => {
+      this.#getFreshTokens(req).then(tokenResponse => {
+        if (tokenResponse) {
+          req.tokenResponse = tokenResponse
+        }
+        next()
+      }).catch(next)
+    }
+  }
+
   get login() {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {

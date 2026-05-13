@@ -17,5 +17,8 @@
   "proxyTargets": {
     "/barnehageside/api/barnehageplass": "https://barnehageplass-dev.oslo.systems/api/barnehageplass",
     "/barnehageside/api": "https://barnehageplass-dev.oslo.systems/api"
+  },
+  "publicProxyTargets": {
+    "/barnehageside/public": "http://127.0.0.1:1/public"
   }
 }
