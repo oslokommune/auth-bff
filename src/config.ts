@@ -103,9 +103,9 @@ export type BffConfig = {
    */
   proxyTargets: { [path: string]: string }
   /**
-   * Like `proxyTargets`, but anonymous requests pass through instead of being rejected. The access
-   * token is still forwarded when a session exists. Registered before `proxyTargets`, so a public
-   * path takes precedence over an overlapping protected one.
+   * Like `proxyTargets`, but requests pass through anonymously — no session lookup, no Authorization
+   * header. Registered before `proxyTargets`, so a public path takes precedence over an overlapping
+   * protected one.
    *
    * Example: `{'/api/public': 'http://example.com/api/public'}`
    */

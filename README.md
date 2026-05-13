@@ -183,9 +183,8 @@ public catalog or a download endpoint polled by CI), list them under `publicProx
 }
 ```
 
-Public targets are proxied through whether or not the user is signed in. When a session exists, the
-access token is still forwarded as `Authorization: Bearer <token>`. The session cookie is stripped
-in both cases.
+Public targets are proxied through anonymously — no session lookup, no Authorization header. The
+session cookie is stripped on the way through.
 
 Public targets are registered before protected ones, so overlapping paths resolve to the public
 mapping (e.g. `publicProxyTargets["/api/public"]` wins over `proxyTargets["/api"]`).

@@ -11,16 +11,11 @@ export function proxyRoutes(config: BffConfig, oidcMiddleware: OidcMiddleware) {
     console.log(`Setting up public proxy: ${path} -> ${target}`)
     router.use(
       path,
-      oidcMiddleware.optionalFreshToken,
       createProxyMiddleware({
         target: target,
         changeOrigin: true,
         on: {
-          proxyReq: (proxyReq, req: Request) => {
-            const accessToken = req.tokenResponse?.access_token
-            if (accessToken) {
-              proxyReq.setHeader("Authorization", `Bearer ${accessToken}`)
-            }
+          proxyReq: (proxyReq) => {
             proxyReq.removeHeader("Cookie")
           },
           proxyRes: (proxyRes, req: Request) => {
