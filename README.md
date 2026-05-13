@@ -140,6 +140,8 @@ Standalone:
 auth-bff --configFile /path/to/bff.config.json
 ```
 
+### Loading values from environment or AWS Parameter Store
+
 The config file supports two special forms for loading values from other sources. Primarily meant for loading secrets:
 
 Environment values:
@@ -163,6 +165,29 @@ variable must be set, and you must be signed in to that profile
 
 > [!NOTE]  
 >️ See [`config.ts`](src/config.ts) for a description of all config parameters
+
+### Mixing public and protected routes
+
+If the application has some routes that should be reachable without an authenticated session (e.g. a
+public catalog or a download endpoint polled by CI), list them under `publicProxyTargets`:
+
+```json
+{
+  "proxyTargets": {
+    "/api": "http://localhost:8080/api"
+  },
+  "publicProxyTargets": {
+    "/api/public": "http://localhost:8080/api/public",
+    "/export.zip": "http://localhost:8080/export.zip"
+  }
+}
+```
+
+Public targets are proxied through anonymously — no session lookup, no Authorization header. The
+session cookie is stripped on the way through.
+
+Public targets are registered before protected ones, so overlapping paths resolve to the public
+mapping (e.g. `publicProxyTargets["/api/public"]` wins over `proxyTargets["/api"]`).
 
 ## Using with ID-porten (via `okdata`):
 
