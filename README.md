@@ -67,21 +67,21 @@ When running in docker you should specify the version to use, and make sure it m
 Example dockerfile:
 
 ```dockerfile
-FROM node:23-alpine AS base
+FROM node:24-alpine AS base
 
-FROM base AS react-build
-WORKDIR /home/react
-COPY package*.json /home/react
-RUN npm install
+FROM base AS build
+WORKDIR /home/app
+COPY package*.json /home/app
+RUN npm ci
 COPY . ./
 RUN npm run build
 
 FROM base
 WORKDIR /application
 EXPOSE 8080
-COPY --from=react-build /home/react/dist /application/dist
+COPY --from=build /home/app/dist /application/dist
 ENV NODE_ENV=production
-RUN npm install -g @oslokommune/auth-bff@2.0.0
+RUN npm install -g @oslokommune/auth-bff@2.0.2
 COPY bff.config.json /application/
 CMD ["auth-bff"]
 ```
