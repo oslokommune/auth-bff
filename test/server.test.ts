@@ -2,6 +2,7 @@ import {expect, test, vi} from 'vitest'
 import request from "supertest"
 import {testApp} from "./testApp.js"
 import {Store} from "express-session"
+import {BffConfig} from "../src/config.js";
 
 let sessionStore: Store
 
@@ -12,7 +13,35 @@ vi.mock(import("../src/middleware/sessions/memorySessionStore.js"), async (impor
   }
 })
 
-const app = await testApp()
+const testConfig: BffConfig = {
+  "port": 3000,
+  "staticRootPath": "test/static",
+  "issuer": "https://test.idporten.no/",
+  "clientId": "test-client",
+  "clientSecret": "test-secret",
+  "resources": ["https://test.resource/api"],
+  "redirectUri": "http://localhost:3000/auth/callback",
+  "postLogoutRedirectUri": "http://localhost:3000",
+  "scope": "openid profile other",
+  "cookieSecure": false,
+  "cookieSameSite": false,
+  "sessionSecret": "example-secret",
+  "sessionStoreType": "memory",
+  "userClaims": ["pid"],
+  "proxyTargets": {
+    "/barnehageside/api/barnehageplass": "https://barnehageplass-dev.oslo.systems/api/barnehageplass",
+    "/barnehageside/api": "https://barnehageplass-dev.oslo.systems/api"
+  },
+  "publicProxyTargets": {
+    "/barnehageside/public": "http://127.0.0.1:1/public"
+  },
+  "injectConfig": {
+    "key": "value",
+    "list": ["many", "items"]
+  }
+}
+
+
 
 function getSessionId(res: any) {
   let cookie = res.get('set-cookie')
@@ -34,6 +63,7 @@ function setSession(id: string, content: object) {
 }
 
 test("/login", async () => {
+  const app = await testApp(testConfig)
   const response = await request(app)
     .get('/auth/login?redirectUrl=/barnehage')
 
@@ -62,6 +92,7 @@ test("/login", async () => {
 })
 
 test.skip('/callback', async () => {
+  const app = await testApp(testConfig)
   const response = await request(app)
     .get('/auth/callback?code=test-code&iss=https%3A%2F%2Ftest.idporten.no&state=test-state')
 
@@ -70,21 +101,33 @@ test.skip('/callback', async () => {
 })
 
 test('protected proxy target returns 401 without session', async () => {
+  const app = await testApp(testConfig)
   const response = await request(app).get('/barnehageside/api/anything')
   expect(response.statusCode).toBe(401)
 })
 
 test('public proxy target does not require a session', async () => {
   // Target is an unreachable port, so the proxy itself fails with 5xx. Point is: not 401.
+  const app = await testApp(testConfig)
   const response = await request(app).get('/barnehageside/public/anything')
   expect(response.statusCode).not.toBe(401)
   expect(response.statusCode).toBeGreaterThanOrEqual(500)
 })
 
 test("injected nonce and config", async () => {
+  const app = await testApp(testConfig)
   const response = await request(app).get('/')
   expect(response.statusCode).toBe(200)
   expect(response.text).toMatch(
 /<script nonce="\w+">\s*const config = {"key":"value","list":\["many","items"]}\s*<\/script>/
   )
+})
+
+test("injected config: remove illegal chars", async () => {
+  const badConfig = {...testConfig, injectConfig: "<script>alert('boo!')</script>"}
+  const app = await testApp(badConfig)
+  const response = await request(app).get('/')
+  expect(response.statusCode).toBe(200)
+  console.log(response.text)
+  expect(response.text).not.toContain(badConfig.injectConfig)
 })

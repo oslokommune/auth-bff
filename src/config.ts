@@ -137,7 +137,7 @@ export type BffConfig = {
   /**
    * These values will be injected into index.html, replacing any `__INJECTED_CONFIG__` if present
    */
-  injectConfig?: string | {[k: string]: string}
+  injectConfig?: string | {[k: string]: any}
 }
 
 const defaultConfig: Partial<BffConfig> = {

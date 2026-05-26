@@ -12,7 +12,7 @@ export function staticRoutes(config: BffConfig) {
   router.use(express.static(staticPath, {index: false}))
   router.get('*', function (_: Request, res: Response) {
     res.set('Cache-Control', 'no-store')
-    res.sendFile(path.resolve(staticPath, 'index.html'))
+    res.sendFile(path.resolve(staticPath, 'index.html'), {etag: false})
   })
 
   return router
