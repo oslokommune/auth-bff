@@ -167,6 +167,31 @@ export async function getSsmParameter(name: string, withDecryption: boolean = tr
 
 let config: BffConfig
 
+export async function replaceConfigValues(value: unknown) {
+  if (typeof value === "string") {
+    const [, varType, varName] = value.match(/\{(\w+):(.*)}/) ?? []
+    if (varType === 'env') {
+      return getEnv(varName)
+    } else if (varType === 'ssm') {
+      return await getSsmParameter(varName)
+    } else if (varType) {
+      throw Error(`unknown varType: ${varType}`)
+    } else {
+      return value
+    }
+  } else if (Array.isArray(value)) {
+    return Promise.all(value.map(replaceConfigValues))
+  } else if (typeof value === "object" && value != null) {
+    const res = {}
+    for (const [key, val] of Object.entries(value)) {
+      res[key] = await replaceConfigValues(val)
+    }
+    return res
+  } else {
+    return value
+  }
+}
+
 export async function loadConfig(configFile: string | Array<string> = 'bff.config.json') {
   if (config) return config
 
@@ -177,19 +202,8 @@ export async function loadConfig(configFile: string | Array<string> = 'bff.confi
   console.log('Loading config at', userConfigPath)
   const {default: loadedConfig} = await import(userConfigPath, {with: {type: 'json'}});
 
-  for (const [key, value] of Object.entries(loadedConfig)) {
-    if (typeof value === "string") {
-      const [, varType, varName] = value.match(/\{(\w+):(.*)}/) ?? []
-      if (varType === 'env') {
-        loadedConfig[key] = getEnv(varName)
-      } else if (varType === 'ssm') {
-        loadedConfig[key] = await getSsmParameter(varName)
-      } else if (varType) {
-        throw Error(`unknown varType: ${varType}`)
-      }
-    }
-  }
+  const processedConfig = await replaceConfigValues(loadedConfig)
 
-  config = {...defaultConfig, ...loadedConfig}
+  config = {...defaultConfig, ...processedConfig}
   return config
 }
