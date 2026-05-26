@@ -2,6 +2,7 @@ import express from "express"
 import {loadConfig} from "./config.js";
 import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
 import {ViteDevServer, Plugin} from 'vite'
+import {injectConfig} from "./middleware/inject-config.js";
 
 function configureServer(configFilePath?: string | Array<string>) {
   return async ({middlewares}: ViteDevServer) => {
@@ -18,6 +19,7 @@ function configureServer(configFilePath?: string | Array<string>) {
     app.use(sessions(config))
     app.use(basePath, oidcRoutes(oidcMiddleware))
     app.use(basePath, proxyRoutes(config, oidcMiddleware))
+    app.use(basePath, injectConfig(config))
 
     middlewares.use(app)
   }

@@ -1,9 +1,9 @@
-import { expect, test, vi } from 'vitest'
+import {expect, test, vi} from 'vitest'
 import request from "supertest"
 import {testApp} from "./testApp.js"
-import session from "express-session"
+import {Store} from "express-session"
 
-let sessionStore: session.MemoryStore
+let sessionStore: Store
 
 vi.mock(import("../src/middleware/sessions/memorySessionStore.js"), async (importOriginal) => {
   const originalModule = await importOriginal()
@@ -12,23 +12,15 @@ vi.mock(import("../src/middleware/sessions/memorySessionStore.js"), async (impor
   }
 })
 
-// vi.mock(import('openid-client'), async (importOriginal) => {
-//   const originalModule = await importOriginal()
-//   return {
-//     ...originalModule,
-//     authorizationCodeGrant: vi.fn(() => Promise.resolve(exampleTokenResponse))
-//   }
-// })
-
 const app = await testApp()
 
 function getSessionId(res: any) {
   let cookie = res.get('set-cookie')
-  if(!Array.isArray(cookie)) {
+  if (!Array.isArray(cookie)) {
     cookie = [cookie]
   }
   const connectCookie = cookie.find((c: string) => c.startsWith('connect.sid'))
-  const [,sid] = connectCookie.match(/connect\.sid=s%3A(.+)\./)
+  const [, sid] = connectCookie.match(/connect\.sid=s%3A(.+)\./)
   return sid
 }
 
@@ -87,4 +79,12 @@ test('public proxy target does not require a session', async () => {
   const response = await request(app).get('/barnehageside/public/anything')
   expect(response.statusCode).not.toBe(401)
   expect(response.statusCode).toBeGreaterThanOrEqual(500)
+})
+
+test("injected nonce and config", async () => {
+  const response = await request(app).get('/')
+  expect(response.statusCode).toBe(200)
+  expect(response.text).toMatch(
+/<script nonce="\w+">\s*const config = {"key":"value","list":\["many","items"]}\s*<\/script>/
+  )
 })

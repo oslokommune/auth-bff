@@ -134,6 +134,10 @@ export type BffConfig = {
    * ```
    */
   contentSecurityPolicy?: Exclude<HelmetOptions['contentSecurityPolicy'], Boolean>
+  /**
+   * These values will be injected into index.html, replacing any `__INJECTED_CONFIG__` if present
+   */
+  injectConfig?: string | {[k: string]: string}
 }
 
 const defaultConfig: Partial<BffConfig> = {

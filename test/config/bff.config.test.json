@@ -1,5 +1,6 @@
 {
   "port": 3000,
+  "staticRootPath": "test/static",
   "oidcDiscoveryUri": "https://test.idporten.no/.well-known/openid-configuration",
   "issuer": "https://test.idporten.no/",
   "clientId": "test-client",
@@ -20,5 +21,9 @@
   },
   "publicProxyTargets": {
     "/barnehageside/public": "http://127.0.0.1:1/public"
+  },
+  "injectConfig": {
+    "key": "value",
+    "list": ["many", "items"]
   }
 }
