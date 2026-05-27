@@ -1,7 +1,7 @@
 import express, {Request, Response} from "express";
 import {stringReplace} from "string-replace-middleware";
 import path from "path";
-import {BffConfig} from "../config.js";
+import {BffConfig} from "../config/config.js";
 import {injectConfig} from "./inject-config.js";
 
 export function staticRoutes(config: BffConfig) {

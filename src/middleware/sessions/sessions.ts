@@ -1,7 +1,7 @@
 import session from "express-session";
 import {dynamoDbSessionStore} from "./dynamoDbSessionStore.js";
 import {memorySessionStore} from "./memorySessionStore.js";
-import {BffConfig} from "../../config.js";
+import {BffConfig} from "../../config/config.js";
 import {Request, Response, NextFunction} from "express";
 
 export function sessions(config: BffConfig) {

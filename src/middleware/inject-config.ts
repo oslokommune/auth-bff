@@ -1,4 +1,4 @@
-import {BffConfig} from "../config.js";
+import {BffConfig} from "../config/config.js";
 import {Request, Response} from "express";
 import {stringReplace} from "string-replace-middleware";
 

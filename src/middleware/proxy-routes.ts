@@ -1,6 +1,6 @@
 import express, {Request} from "express"
 import {createProxyMiddleware} from "http-proxy-middleware"
-import {BffConfig} from "../config.js";
+import {BffConfig} from "../config/config.js";
 import {OidcMiddleware} from "./OidcMiddleware.js";
 
 export function proxyRoutes(config: BffConfig, oidcMiddleware: OidcMiddleware) {

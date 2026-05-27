@@ -1,7 +1,7 @@
 import {findUp} from 'find-up'
-import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
 import {HelmetOptions} from "helmet";
 import session from "express-session";
+import {getEnv, getSsmParameter} from "./variable-loaders.js";
 
 export type BffConfig = {
   /**
@@ -81,7 +81,7 @@ export type BffConfig = {
    *
    * Example: `/okdata/maskinporten/11111111-2222-3333-4444-555555555555/key.json`
    */
-  okDataIdPortenKeyName: string
+  okDataIdPortenKeyName?: string
   /**
    * Secret used to sign sessions. This can be any string, but should have at least 32 bytes of entropy in production.
    */
@@ -137,7 +137,7 @@ export type BffConfig = {
   /**
    * These values will be injected into index.html, replacing any `__INJECTED_CONFIG__` if present
    */
-  injectConfig?: string | {[k: string]: any}
+  injectConfig?: string | boolean | number | null | {[k: string]: string | boolean | number | null}
 }
 
 const defaultConfig: Partial<BffConfig> = {
@@ -147,26 +147,6 @@ const defaultConfig: Partial<BffConfig> = {
   cookieSameSite: 'lax',
   staticRootPath: './dist',
   scope: 'openid profile'
-}
-
-export function getEnv(env: string, defaultVal?: string, parseFn?: (val: string) => string) {
-  if (process.env[env]) {
-    return parseFn ? parseFn(process.env[env]) : process.env[env]
-  } else if (defaultVal !== undefined) {
-    return defaultVal
-  } else {
-    throw Error(`Missing env var: ${env}`)
-  }
-}
-
-let ssmClient: SSMClient
-
-export async function getSsmParameter(name: string, withDecryption: boolean = true) {
-  ssmClient ??= new SSMClient({})
-  return ssmClient.send(new GetParameterCommand({
-    Name: name,
-    WithDecryption: withDecryption
-  })).then(p => p.Parameter.Value)
 }
 
 let config: BffConfig

@@ -1,6 +1,6 @@
 import openidConfig from './config/openid-configuration.json' with { type: 'json' }
 import {OpenIdConfigManager} from "../src/OpenIdConfigManager.js";
-import {BffConfig} from "../src/config.js";
+import {BffConfig} from "../src/config/config.js";
 import {OidcMiddleware} from "../src/middleware/OidcMiddleware.js";
 import {oidcRoutes} from "../src/middleware/oidc-routes.js";
 import {sessions} from "../src/middleware/sessions/sessions.js";

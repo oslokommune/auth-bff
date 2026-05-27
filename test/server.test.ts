@@ -2,7 +2,7 @@ import {expect, test, vi} from 'vitest'
 import request from "supertest"
 import {testApp} from "./testApp.js"
 import {Store} from "express-session"
-import {BffConfig} from "../src/config.js";
+import {BffConfig} from "../src/config/config.js";
 
 let sessionStore: Store
 

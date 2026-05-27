@@ -2,7 +2,7 @@ import {DeleteItemCommand, DynamoDBClient, QueryCommand} from "@aws-sdk/client-d
 import dynamoDbStore, {DynamoDBStoreOptions} from "connect-dynamodb";
 import session from "express-session";
 import {redact} from "../../utils.js";
-import {BffConfig} from "../../config.js";
+import {BffConfig} from "../../config/config.js";
 
 const destroyByIdpSid = (config: BffConfig['sessionStoreOptions'], client: DynamoDBClient) => {
   return async (idpSid: string) => {

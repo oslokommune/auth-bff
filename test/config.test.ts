@@ -1,7 +1,12 @@
 import {describe, expect, test, it, vi} from 'vitest'
-import {replaceConfigValues} from "../src/config.js"
+import {replaceConfigValues} from "../src/config/config.js"
 
-process.env.SOME_ENV = "TEST_VAL"
+vi.mock(import("../src/config/variable-loaders.js"), () => {
+  return {
+    getSsmParameter: vi.fn().mockReturnValue("SSM_VAL"),
+    getEnv: vi.fn().mockReturnValue("ENV_VAL")
+  }
+})
 
 describe("replaceConfigValues", () => {
   it("should not replace normal values", async () => {
@@ -20,12 +25,16 @@ describe("replaceConfigValues", () => {
 
   it("should replace env string values", async () => {
     const stringValue = await replaceConfigValues('{env:SOME_ENV}')
-    expect(stringValue).toBe('TEST_VAL')
+    expect(stringValue).toBe('ENV_VAL')
   })
 
-  it("should replace env string values", async () => {
-    const stringValue = await replaceConfigValues('{env:SOME_ENV}')
-    expect(stringValue).toBe('TEST_VAL')
+  it("should replace ssm string values", async () => {
+    const stringValue = await replaceConfigValues('{ssm:/some/var}')
+    expect(stringValue).toBe('SSM_VAL')
+  })
+
+  it("should fail if var type is invalid", async () => {
+    await expect(replaceConfigValues('{oops:BOOM}')).rejects.toThrow('unknown varType')
   })
 
   it("should replace values in objects", async () => {
@@ -35,7 +44,7 @@ describe("replaceConfigValues", () => {
     })
 
     expect(result).toStrictEqual({
-      "a": 'TEST_VAL',
+      "a": 'ENV_VAL',
       "b": 'normal-string'
     })
   })
@@ -49,7 +58,7 @@ describe("replaceConfigValues", () => {
 
     expect(result).toStrictEqual([
       'normal-string',
-      'TEST_VAL',
+      'ENV_VAL',
       'another-normal-string'
     ])
   })
@@ -72,18 +81,18 @@ describe("replaceConfigValues", () => {
     })
 
     expect(result).toStrictEqual({
-      "a": 'TEST_VAL',
+      "a": 'ENV_VAL',
       "b": 'normal-string',
       "c": [
         'normal-string',
-        'TEST_VAL',
-        {'inlist': 'TEST_VAL'}
+        'ENV_VAL',
+        {'inlist': 'ENV_VAL'}
       ],
       "d": {
         "da": 1,
-        "db": 'TEST_VAL',
-        "dc": {"dca": 'TEST_VAL'},
-        "dd": [1, 2, 'TEST_VAL', 4]
+        "db": 'ENV_VAL',
+        "dc": {"dca": 'ENV_VAL'},
+        "dd": [1, 2, 'ENV_VAL', 4]
       }
     })
   })

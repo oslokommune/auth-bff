@@ -164,7 +164,7 @@ This loads from the configured AWS environment. For this to work on your local m
 variable must be set, and you must be signed in to that profile
 
 > [!NOTE]  
->️ See [`config.ts`](src/config.ts) for a description of all config parameters
+>️ See [`config.ts`](src/config/config.ts) for a description of all config parameters
 
 ### Mixing public and protected routes
 

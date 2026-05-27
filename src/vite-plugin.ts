@@ -1,5 +1,5 @@
 import express from "express"
-import {loadConfig} from "./config.js";
+import {loadConfig} from "./config/config.js";
 import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
 import {ViteDevServer, Plugin} from 'vite'
 import {injectConfig} from "./middleware/inject-config.js";
