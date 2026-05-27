@@ -1,7 +1,7 @@
 import {findUp} from 'find-up'
-import {GetParameterCommand, SSMClient} from "@aws-sdk/client-ssm";
 import {HelmetOptions} from "helmet";
 import session from "express-session";
+import {getEnv, getSsmParameter} from "./variable-loaders.js";
 
 export type BffConfig = {
   /**
@@ -81,7 +81,7 @@ export type BffConfig = {
    *
    * Example: `/okdata/maskinporten/11111111-2222-3333-4444-555555555555/key.json`
    */
-  okDataIdPortenKeyName: string
+  okDataIdPortenKeyName?: string
   /**
    * Secret used to sign sessions. This can be any string, but should have at least 32 bytes of entropy in production.
    */
@@ -134,6 +134,10 @@ export type BffConfig = {
    * ```
    */
   contentSecurityPolicy?: Exclude<HelmetOptions['contentSecurityPolicy'], Boolean>
+  /**
+   * These values will be injected into index.html, replacing any `__INJECTED_CONFIG__` if present
+   */
+  injectConfig?: string | boolean | number | null | {[k: string]: string | boolean | number | null}
 }
 
 const defaultConfig: Partial<BffConfig> = {
@@ -145,27 +149,32 @@ const defaultConfig: Partial<BffConfig> = {
   scope: 'openid profile'
 }
 
-export function getEnv(env: string, defaultVal?: string, parseFn?: (val: string) => string) {
-  if (process.env[env]) {
-    return parseFn ? parseFn(process.env[env]) : process.env[env]
-  } else if (defaultVal !== undefined) {
-    return defaultVal
+let config: BffConfig
+
+export async function replaceConfigValues(value: unknown) {
+  if (typeof value === "string") {
+    const [, varType, varName] = value.match(/\{(\w+):(.*)}/) ?? []
+    if (varType === 'env') {
+      return getEnv(varName)
+    } else if (varType === 'ssm') {
+      return await getSsmParameter(varName)
+    } else if (varType) {
+      throw Error(`unknown varType: ${varType}`)
+    } else {
+      return value
+    }
+  } else if (Array.isArray(value)) {
+    return Promise.all(value.map(replaceConfigValues))
+  } else if (typeof value === "object" && value != null) {
+    const res = {}
+    for (const [key, val] of Object.entries(value)) {
+      res[key] = await replaceConfigValues(val)
+    }
+    return res
   } else {
-    throw Error(`Missing env var: ${env}`)
+    return value
   }
 }
-
-let ssmClient: SSMClient
-
-export async function getSsmParameter(name: string, withDecryption: boolean = true) {
-  ssmClient ??= new SSMClient({})
-  return ssmClient.send(new GetParameterCommand({
-    Name: name,
-    WithDecryption: withDecryption
-  })).then(p => p.Parameter.Value)
-}
-
-let config: BffConfig
 
 export async function loadConfig(configFile: string | Array<string> = 'bff.config.json') {
   if (config) return config
@@ -177,19 +186,8 @@ export async function loadConfig(configFile: string | Array<string> = 'bff.confi
   console.log('Loading config at', userConfigPath)
   const {default: loadedConfig} = await import(userConfigPath, {with: {type: 'json'}});
 
-  for (const [key, value] of Object.entries(loadedConfig)) {
-    if (typeof value === "string") {
-      const [, varType, varName] = value.match(/\{(\w+):(.*)}/) ?? []
-      if (varType === 'env') {
-        loadedConfig[key] = getEnv(varName)
-      } else if (varType === 'ssm') {
-        loadedConfig[key] = await getSsmParameter(varName)
-      } else if (varType) {
-        throw Error(`unknown varType: ${varType}`)
-      }
-    }
-  }
+  const processedConfig = await replaceConfigValues(loadedConfig)
 
-  config = {...defaultConfig, ...loadedConfig}
+  config = {...defaultConfig, ...processedConfig}
   return config
 }

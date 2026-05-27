@@ -1,7 +1,7 @@
 import * as openIdClient from "openid-client";
 import {OpenIdConfigManager} from "../OpenIdConfigManager.js";
 import {redact} from "../utils.js";
-import {BffConfig} from "../config.js";
+import {BffConfig} from "../config/config.js";
 import type {Request, Response, NextFunction} from 'express'
 import {IDToken, TokenEndpointResponse, TokenEndpointResponseHelpers} from "openid-client"
 import * as oauth from 'oauth4webapi'

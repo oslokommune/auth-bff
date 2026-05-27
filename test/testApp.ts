@@ -1,6 +1,6 @@
 import openidConfig from './config/openid-configuration.json' with { type: 'json' }
 import {OpenIdConfigManager} from "../src/OpenIdConfigManager.js";
-import {loadConfig} from "../src/config.js";
+import {BffConfig} from "../src/config/config.js";
 import {OidcMiddleware} from "../src/middleware/OidcMiddleware.js";
 import {oidcRoutes} from "../src/middleware/oidc-routes.js";
 import {sessions} from "../src/middleware/sessions/sessions.js";
@@ -10,8 +10,7 @@ import {proxyRoutes} from "../src/middleware/proxy-routes.js";
 import express from "express";
 import compression from "compression"
 
-export async function testApp() {
-  const bffConfig = await loadConfig('./test/config/bff.config.test.json')
+export async function testApp(bffConfig: BffConfig) {
 
   const configManager = new OpenIdConfigManager(bffConfig, openidConfig)
   await configManager.init()

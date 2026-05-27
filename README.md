@@ -164,7 +164,7 @@ This loads from the configured AWS environment. For this to work on your local m
 variable must be set, and you must be signed in to that profile
 
 > [!NOTE]  
->️ See [`config.ts`](src/config.ts) for a description of all config parameters
+>️ See [`config.ts`](src/config/config.ts) for a description of all config parameters
 
 ### Mixing public and protected routes
 
@@ -420,3 +420,38 @@ To use a nonce in your app, use `__CSP_NONCE__` in your html. It will be replace
     ...
 </script>
 ```
+
+## Inject config
+
+If your application requires configuration that needs to be determined at runtime, you can use `injectConfig` to inject
+these values into a served html file:
+
+```json
+{
+  "injectConfig": {
+    "enableSomeFeature": true,
+    "publicToken": "{env:MY_PUBLIC_TOKEN}"
+  }
+}
+```
+
+Then add something this to your `index.html`:
+```html
+<script nonce="__CSP_NONCE__">
+    const injectedConfig = __INJECTED_CONFIG__
+</script>
+```
+
+When rendered, `__INJECTED_CONFIG__` will be replaced with the values from `injectConfig`: 
+
+```html
+<script nonce="abcdef123456">
+    const injectedConfig = {
+        "enableSomeFeature": true,
+        "publicToken": "pub123abc"
+    }
+</script>
+```
+
+> [!WARNING]  
+> Do not put any secrets or other sensitive values in the injected config, they will be publicly visible.

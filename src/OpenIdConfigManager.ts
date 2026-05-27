@@ -2,7 +2,8 @@
 import forge from 'node-forge'
 import * as jose from 'jose'
 import * as client from 'openid-client'
-import {BffConfig, getSsmParameter} from "./config.js";
+import {BffConfig} from "./config/config.js";
+import {getSsmParameter} from "./config/variable-loaders.js";
 
 type OkDataKey = {
   keystore: string,

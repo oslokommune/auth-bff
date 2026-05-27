@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import express, {Request, Response, NextFunction} from "express"
 import compression from "compression"
-import {loadConfig} from './config.js'
+import {loadConfig} from './config/config.js'
 import {proxyRoutes} from "./middleware/proxy-routes.js";
 import {staticRoutes} from "./middleware/static-routes.js";
 import {securityHeaders} from "./middleware/security-headers.js";

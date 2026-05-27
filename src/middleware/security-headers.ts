@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import helmet from "helmet";
 import {Request, Response, NextFunction} from 'express'
-import {BffConfig} from "../config.js";
+import {BffConfig} from "../config/config.js";
 
 export function securityHeaders(config: BffConfig) {
   
