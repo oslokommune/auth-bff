@@ -45,9 +45,22 @@ const server = app.listen(port, () => {
   console.log(`auth-bff ${packageJson.version} started on port ${port}`)
 })
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Closing...')
+const shutdown = (signal: string) => {
+  console.log(`${signal} received. Closing...`)
+  // Drop idle keep-alive connections (e.g. from a load balancer) so that
+  // server.close() can complete instead of waiting for them to time out.
+  server.closeIdleConnections?.()
   server.close(() => {
     console.log('Server closed')
+    process.exit(0)
   })
-})
+  // Hard fallback in case draining stalls, so we always exit before the
+  // orchestrator resorts to SIGKILL.
+  setTimeout(() => {
+    console.warn('Forced shutdown after timeout')
+    process.exit(1)
+  }, 10_000).unref()
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))

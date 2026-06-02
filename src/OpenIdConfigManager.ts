@@ -26,9 +26,11 @@ export class OpenIdConfigManager {
   async init() {
     await this.updateOpenIdConfig()
     if(this.#bffConfig.okDataIdPortenKeyName) {
+      // unref() so this periodic refresh does not keep the Node event loop
+      // alive, allowing the process to exit cleanly on shutdown.
       setInterval(async () => {
         await this.updateOpenIdConfig()
-      }, 5 * 60 * 1000)
+      }, 5 * 60 * 1000).unref()
     }
   }
 
