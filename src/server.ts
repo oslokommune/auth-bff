@@ -49,7 +49,6 @@ const shutdown = (signal: string) => {
   console.log(`${signal} received. Closing...`)
   server.close(() => {
     console.log('Server closed')
-    process.exit(0)
   })
   // Hard fallback in case draining stalls, so we always exit before the
   // orchestrator resorts to SIGKILL.
