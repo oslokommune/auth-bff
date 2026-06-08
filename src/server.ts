@@ -50,8 +50,6 @@ const shutdown = (signal: string) => {
   server.close(() => {
     console.log('Server closed')
   })
-  // Hard fallback in case draining stalls, so we always exit before the
-  // orchestrator resorts to SIGKILL.
   setTimeout(() => {
     console.warn('Forced shutdown after timeout')
     process.exit(1)
