@@ -52,7 +52,7 @@ const shutdown = (signal: string) => {
   })
   setTimeout(() => {
     console.warn('Forced shutdown after timeout')
-    process.exit(1)
+    process.exit()
   }, 10_000).unref()
 }
 
