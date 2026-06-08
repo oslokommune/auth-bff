@@ -47,9 +47,6 @@ const server = app.listen(port, () => {
 
 const shutdown = (signal: string) => {
   console.log(`${signal} received. Closing...`)
-  // Drop idle keep-alive connections (e.g. from a load balancer) so that
-  // server.close() can complete instead of waiting for them to time out.
-  server.closeIdleConnections?.()
   server.close(() => {
     console.log('Server closed')
     process.exit(0)
