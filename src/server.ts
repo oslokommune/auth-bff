@@ -45,9 +45,16 @@ const server = app.listen(port, () => {
   console.log(`auth-bff ${packageJson.version} started on port ${port}`)
 })
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Closing...')
+const shutdown = (signal: string) => {
+  console.log(`${signal} received. Closing...`)
   server.close(() => {
     console.log('Server closed')
   })
-})
+  setTimeout(() => {
+    console.warn('Forced shutdown after timeout')
+    process.exit()
+  }, 10_000).unref()
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))

@@ -28,7 +28,7 @@ export class OpenIdConfigManager {
     if(this.#bffConfig.okDataIdPortenKeyName) {
       setInterval(async () => {
         await this.updateOpenIdConfig()
-      }, 5 * 60 * 1000)
+      }, 5 * 60 * 1000).unref()
     }
   }
 
