@@ -5,7 +5,7 @@ import {BffConfig} from "../config/config.js";
 import type {Request, Response, NextFunction} from 'express'
 import {IDToken, TokenEndpointResponse, TokenEndpointResponseHelpers} from "openid-client"
 
-export class AuthError extends Error {
+export class LoginError extends Error {
   originalError: Error
   constructor(message: string,  original: Error) {
     super(message)
@@ -28,17 +28,29 @@ export class OidcMiddleware {
     this.#bffConfig = config
   }
 
-  get #openIdConfig() {
+  async #openIdConfig() {
+    if(!this.#configManager.openIdConfig) {
+      await this.#configManager.init()
+    }
     return this.#configManager.openIdConfig
   }
 
   static async create(config: BffConfig) {
     const configManager = new OpenIdConfigManager(config)
-    await configManager.init()
+    try {
+      await configManager.init()
+    } catch (e) {
+      console.error("Initial OpenID Config initialization failed", e)
+      if(config.requireOpenIdConfigAtStartup) {
+        throw e
+      }
+    }
     return new OidcMiddleware(config, configManager)
+
   }
 
   async #refreshTokens(req: Request, tokenResponse: TokenEndpointResponse) {
+    const openIdConfig = await this.#openIdConfig()
     const sessionId = req.session.id
     const refreshToken = tokenResponse.refresh_token
 
@@ -46,7 +58,7 @@ export class OidcMiddleware {
       console.log(`Token refresh starting. sid=${redact(sessionId)}`)
       try {
         const tokenResponse = await openIdClient.refreshTokenGrant(
-          this.#openIdConfig,
+          openIdConfig,
           refreshToken
         )
         console.log(`Token refresh OK. sid=${redact(sessionId)}`)
@@ -117,6 +129,7 @@ export class OidcMiddleware {
         const codeChallenge = await openIdClient.calculatePKCECodeChallenge(codeVerifier)
         const stateKey = openIdClient.randomState()
         const redirectUrl = req.query.redirectUrl as string //TODO: håndtering av andre typer her?
+        const openIdConfig = await this.#openIdConfig()
 
         const params = new URLSearchParams()
         params.append('scope', this.#bffConfig.scope)
@@ -127,7 +140,7 @@ export class OidcMiddleware {
         this.#bffConfig.resources?.forEach(resource => {
           params.append('resource', resource)
         })
-        const authorizationUrl = openIdClient.buildAuthorizationUrl(this.#openIdConfig, params)
+        const authorizationUrl = openIdClient.buildAuthorizationUrl(openIdConfig, params)
 
         req.session.codeVerifier = codeVerifier
         req.session.stateKey = stateKey
@@ -137,8 +150,7 @@ export class OidcMiddleware {
           res.redirect(authorizationUrl.toString())
         })
       } catch (e) {
-        console.error(e)
-        next(e)
+        next(new LoginError("Feil i login", e))
       }
 
     }
@@ -166,10 +178,11 @@ export class OidcMiddleware {
   get callback() {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
+        const openIdConfig = await this.#openIdConfig()
         const {codeVerifier, stateKey, stateValue} = req.session
         const url = new URL(`${req.protocol}://${req.headers.host}${req.originalUrl}`)
         const tokenResponse = await openIdClient.authorizationCodeGrant(
-          this.#openIdConfig,
+          openIdConfig,
           url,
           {
             expectedState: stateKey,
@@ -198,7 +211,7 @@ export class OidcMiddleware {
 
       } catch (e) {
         req.session.destroy(() => {
-          next(new AuthError("Feil i callback", e))
+          next(new LoginError("Feil i callback", e))
         })
       }
     }
@@ -215,22 +228,26 @@ export class OidcMiddleware {
 
         return res.send(req.session.userClaims)
       } catch (e) {
-        console.error(`Error in /user sid=${redact(req.session?.id)}`, e)
-        next(e)
+        next(new LoginError(`Feil i /user (sid=${redact(req.session?.id)})`, e))
       }
     }
   }
 
   get logout() {
-    return (req: Request, res: Response) => {
-      const tokenResponse = req.session.tokenResponse
-      req.session.destroy(() => {
-        const idTokenHint = tokenResponse?.id_token
-        const endSessionUrl = openIdClient.buildEndSessionUrl(this.#openIdConfig, idTokenHint ? {
-          id_token_hint: idTokenHint,
-        } : {})
-        res.redirect(endSessionUrl.toString())
-      })
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const tokenResponse = req.session.tokenResponse
+        const openIdConfig = await this.#openIdConfig()
+        req.session.destroy(() => {
+          const idTokenHint = tokenResponse?.id_token
+          const endSessionUrl = openIdClient.buildEndSessionUrl(openIdConfig, idTokenHint ? {
+            id_token_hint: idTokenHint,
+          } : {})
+          res.redirect(endSessionUrl.toString())
+        })
+      } catch (e) {
+        next(e)
+      }
     }
   }
 

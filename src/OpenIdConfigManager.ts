@@ -17,6 +17,7 @@ export class OpenIdConfigManager {
   #bffConfig: BffConfig
   #openIdConfig: client.Configuration
   #serverMetadata: client.ServerMetadata
+  #updateInterval: ReturnType<typeof setInterval>
 
   constructor(config: BffConfig, serverMetadata?: client.ServerMetadata) {
     this.#bffConfig = config
@@ -26,7 +27,8 @@ export class OpenIdConfigManager {
   async init() {
     await this.updateOpenIdConfig()
     if(this.#bffConfig.okDataIdPortenKeyName) {
-      setInterval(async () => {
+      clearInterval(this.#updateInterval)
+      this.#updateInterval = setInterval(async () => {
         await this.updateOpenIdConfig()
       }, 5 * 60 * 1000).unref()
     }

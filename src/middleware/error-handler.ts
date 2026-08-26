@@ -1,10 +1,10 @@
 import {type Request, type Response, type NextFunction} from 'express';
-import {AuthError} from "./OidcMiddleware.js";
+import {LoginError} from "./OidcMiddleware.js";
 
 export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
 
-  if (err instanceof AuthError) {
-    console.error(`Feil i autentisering: ${err.message}:`, err.originalError);
+  if (err instanceof LoginError) {
+    console.error(`Feil i autentisering (${req.path}): ${err.message}:`, err.originalError);
     res.status(500)
       .contentType('text/html')
       .send(`
@@ -14,7 +14,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
         </p>
       `)
   } else {
-    console.error('Ukjent feil:', err);
+    console.error(`Ukjent feil (${req.path}):`, err);
     res.status(500).send('Beklager, det skjedde en feil. Prøv igjen senere.');
   }
 }

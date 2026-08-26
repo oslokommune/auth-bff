@@ -138,6 +138,7 @@ export type BffConfig = {
    * These values will be injected into index.html, replacing any `__INJECTED_CONFIG__` if present
    */
   injectConfig?: string | boolean | number | null | {[k: string]: string | boolean | number | null}
+  requireOpenIdConfigAtStartup: boolean
 }
 
 const defaultConfig: Partial<BffConfig> = {
@@ -146,7 +147,8 @@ const defaultConfig: Partial<BffConfig> = {
   cookieSecure: true,
   cookieSameSite: 'lax',
   staticRootPath: './dist',
-  scope: 'openid profile'
+  scope: 'openid profile',
+  requireOpenIdConfigAtStartup: true
 }
 
 let config: BffConfig
