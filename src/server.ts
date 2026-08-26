@@ -10,6 +10,7 @@ import {oidcRoutes} from "./middleware/oidc-routes.js";
 import {OidcMiddleware} from "./middleware/OidcMiddleware.js";
 import commandLineArgs from "command-line-args"
 import packageJson from "../package.json" with {type: 'json'}
+import {errorHandler} from "./middleware/error-handler.js";
 
 const options = commandLineArgs([{name: 'configFile'}])
 const config = await loadConfig(options.configFile)
@@ -40,6 +41,7 @@ app.use(basePath, oidcRoutes(oidcMiddleware))
 app.use(requestLogger) //NB, må stå her for å ikke logge auth-requestene over
 app.use(basePath, proxyRoutes(config, oidcMiddleware))
 app.use(basePath, staticRoutes(config))
+app.use(errorHandler)
 
 const server = app.listen(port, () => {
   console.log(`auth-bff ${packageJson.version} started on port ${port}`)

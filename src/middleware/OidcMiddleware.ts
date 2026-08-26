@@ -4,8 +4,14 @@ import {redact} from "../utils.js";
 import {BffConfig} from "../config/config.js";
 import type {Request, Response, NextFunction} from 'express'
 import {IDToken, TokenEndpointResponse, TokenEndpointResponseHelpers} from "openid-client"
-import * as oauth from 'oauth4webapi'
 
+export class AuthError extends Error {
+  originalError: Error
+  constructor(message: string,  original: Error) {
+    super(message)
+    this.originalError = original
+  }
+}
 
 export class OidcMiddleware {
   #configManager: OpenIdConfigManager
@@ -191,9 +197,8 @@ export class OidcMiddleware {
         })
 
       } catch (e) {
-        console.error(e)
         req.session.destroy(() => {
-          next(e)
+          next(new AuthError("Feil i callback", e))
         })
       }
     }
