@@ -220,9 +220,10 @@ export class OidcMiddleware {
     return (req: Request, res: Response) => {
       const tokenResponse = req.session.tokenResponse
       req.session.destroy(() => {
-        const endSessionUrl = openIdClient.buildEndSessionUrl(this.#openIdConfig, {
-          id_token_hint: tokenResponse?.id_token,
-        })
+        const idTokenHint = tokenResponse?.id_token
+        const endSessionUrl = openIdClient.buildEndSessionUrl(this.#openIdConfig, idTokenHint ? {
+          id_token_hint: idTokenHint,
+        } : {})
         res.redirect(endSessionUrl.toString())
       })
     }
