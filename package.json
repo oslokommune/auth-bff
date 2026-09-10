@@ -37,7 +37,7 @@
     "react": "17.0.2",
     "supertest": "7.2.2",
     "typescript": "5.9.3",
-    "vitest": "4.1.6"
+    "vitest": "4.1.11"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "3.1045.0",
