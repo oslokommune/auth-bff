@@ -180,7 +180,8 @@ export class OidcMiddleware {
       try {
         const openIdConfig = await this.#openIdConfig()
         const {codeVerifier, stateKey, stateValue} = req.session
-        const url = new URL(`${req.protocol}://${req.headers.host}${req.originalUrl}`)
+        const baseUrl = `${req.protocol}://${req.headers.host}`
+        const url = new URL(`${baseUrl}${req.originalUrl}`)
         const tokenResponse = await openIdClient.authorizationCodeGrant(
           openIdConfig,
           url,
@@ -206,7 +207,7 @@ export class OidcMiddleware {
           if (!redirectUrl || absoluteUrlRegex.test(redirectUrl)) {
             redirectUrl = this.#bffConfig.basePath || "/"
           }
-          res.redirect(redirectUrl)
+          res.redirect(`${baseUrl}${redirectUrl}`)
         })
 
       } catch (e) {
