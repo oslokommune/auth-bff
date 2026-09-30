@@ -1,6 +1,6 @@
 import * as openIdClient from "openid-client";
 import {OpenIdConfigManager} from "../OpenIdConfigManager.js";
-import {redact} from "../utils.js";
+import {redact, safeRedirectUrl} from "../utils.js";
 import {BffConfig} from "../config/config.js";
 import type {Request, Response, NextFunction} from 'express'
 import {IDToken, TokenEndpointResponse, TokenEndpointResponseHelpers} from "openid-client"
@@ -180,8 +180,8 @@ export class OidcMiddleware {
       try {
         const openIdConfig = await this.#openIdConfig()
         const {codeVerifier, stateKey, stateValue} = req.session
-        const baseUrl = `${req.protocol}://${req.headers.host}`
-        const url = new URL(`${baseUrl}${req.originalUrl}`)
+        const baseUrl = new URL(`${req.protocol}://${req.headers.host}`)
+        const url = new URL(req.originalUrl, baseUrl)
         const tokenResponse = await openIdClient.authorizationCodeGrant(
           openIdConfig,
           url,
@@ -201,13 +201,8 @@ export class OidcMiddleware {
         delete req.session.stateValue
 
         req.session.save(() => {
-          let redirectUrl = stateValue.redirectUrl
-          //only allow relative redirecturls:
-          const absoluteUrlRegex = /^(?:[a-z+]+:)?\/\//
-          if (!redirectUrl || absoluteUrlRegex.test(redirectUrl)) {
-            redirectUrl = this.#bffConfig.basePath || "/"
-          }
-          res.redirect(`${baseUrl}${redirectUrl}`)
+          const redirectUrl = safeRedirectUrl(baseUrl, stateValue.redirectUrl)
+          res.redirect(redirectUrl.toString())
         })
 
       } catch (e) {
